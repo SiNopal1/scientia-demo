@@ -356,6 +356,9 @@
     </svg>
 
     <script>
+        if (!localStorage.getItem('userCurrentLevelId')) {
+            localStorage.setItem('userCurrentLevelId', '1');
+        }
         // --- DATA LEVEL ---
         const levelsData = [
             { "id": 1, "name": "Definisi Turunan", "type": "lesson", "filePath": "learn/ch1/main.html" },
