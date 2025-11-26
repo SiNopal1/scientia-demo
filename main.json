@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "name": "Definisi Turunan",
+    "type": "lesson",
+    "filePath": "learn/ch1/main.html"
+  },
+  {
+    "id": 2,
+    "name": "Aturan Perpangkatan",
+    "type": "lesson",
+    "filePath": "learn/ch2/main.html"
+  },
+  {
+    "id": 3,
+    "name": "Penjumlahan dan Pengurangan",
+    "type": "lesson",
+    "filePath": "learn/ch3/main.html"
+  },
+  {
+    "id": 4,
+    "name": "Battle I",
+    "type": "battle",
+    "filePath": "battle/ch1/main.html"
+  },
+  {
+    "id": 5,
+    "name": "Perkalian",
+    "type": "lesson",
+    "filePath": "lesson/ch4/main.html"
+  },
+  {
+    "id": 6,
+    "name": "Pembagian",
+    "type": "lesson",
+    "filePath": "lesson/ch5/main.html"
+  },
+  {
+    "id": 7,
+    "name": "Battle II",
+    "type": "battle",
+    "filePath": "battle/ch2/main.html"
+  },
+  {
+    "id": 8,
+    "name": "Aturan Rantai",
+    "type": "lesson",
+    "filePath": "learn/ch6/main.html"
+  },
+  {
+    "id": 9,
+    "name": "Aturan Trigonometri",
+    "type": "lesson",
+    "filePath": "learn/ch7/main.html"
+  },
+  {
+    "id": 10,
+    "name": "Battle III",
+    "type": "battle",
+    "filePath": "battle/ch3/main.html"
+  },
+  {
+    "id": 11,
+    "name": "Final Boss",
+    "type": "final-boss",
+    "filePath": "battle/ch4/main.html"
+  }
+]

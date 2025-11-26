@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bimbel Game - Level Up Nilai Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        .fade-in-delay-1 {
+            animation-delay: 0.2s;
+        }
+
+        .fade-in-delay-2 {
+            animation-delay: 0.4s;
+        }
+
+        .fade-in-delay-3 {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(61, 186, 249, 0.3);
+        }
+
+        .btn-hover:active {
+            transform: scale(0.95);
+        }
+
+        .card-feature {
+            transition: all 0.4s ease;
+        }
+
+        .card-feature:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(82, 140, 189, 0.2);
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, #f5f8fa 0%, #e8f2f7 100%);
+        }
+
+        .text-primary {
+            color: #528cbd;
+        }
+
+        .bg-primary {
+            background-color: #528cbd;
+        }
+
+        .bg-secondary {
+            background-color: #8eb7db;
+        }
+
+        .bg-accent {
+            background-color: #3dbaf9;
+        }
+
+        .text-dark {
+            color: #040607;
+        }
+
+        .bg-light {
+            background-color: #f5f8fa;
+        }
+
+        .feature-icon {
+            background: linear-gradient(135deg, #3dbaf9 0%, #528cbd 100%);
+        }
+    </style>
+</head>
+<body class="bg-light text-dark">
+    
+    <!-- Hero Section -->
+    <section class="hero-gradient min-h-screen flex items-center justify-center px-4 py-12 md:py-20">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="fade-in">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-dark mb-6 leading-tight">
+                    Ubah Waktu Main<br class="hidden md:block"> Menjadi <span class="text-primary">Waktu Belajar.</span><br>
+                </h1>
+            </div>
+            
+            <div class="fade-in fade-in-delay-1">
+                <p class="text-lg md:text-xl text-gray-700 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed">
+                    Platform bimbel interaktif yang menggunakan kurikulum nasional dengan format video game Turn-Based Card Battle. Anak senang, Orang Tua tenang.
+                </p>
+            </div>
+            <!-- Uncomment this if you the landing page image is ready! -->
+            <!-- <div class="fade-in fade-in-delay-2">
+                <img src="media/landing-page.jpg" alt="Game Preview" class="mx-auto mb-8 md:mb-12 rounded-2xl shadow-2xl max-w-full h-auto">
+            </div> -->
+
+            <div class="fade-in fade-in-delay-3 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="main.html" class="btn-hover bg-accent text-white px-8 py-4 rounded-full font-bold text-lg w-full sm:w-auto hover:bg-opacity-90 shadow-lg">
+                    Mulai (Demo)
+                </a>
+                <a href="baca-panduan.html" class="btn-hover bg-white text-primary border-2 border-primary px-8 py-4 rounded-full font-bold text-lg w-full sm:w-auto hover:bg-primary shadow-lg">
+                    Baca Panduan
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="py-16 md:py-20 px-4 bg-white">
+        <div class="max-w-6xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-dark mb-16 fade-in">
+                Bosan dengan metode les <span class="text-primary">konvensional?</span>
+            </h2>
+
+            <!-- Features Zig-Zag Layout -->
+            <div class="space-y-20 md:space-y-32">
+                
+                <!-- Feature 1: Turn-Based Battle -->
+                <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12 fade-in">
+                    <div class="w-full md:w-1/2 order-2 md:order-1">
+                        <div class="card-feature bg-gradient-to-br from-blue-50 to-cyan-50 p-8 rounded-2xl shadow-lg">
+                            <div class="feature-icon w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto md:mx-0">
+                                <span class="text-3xl">⚔️</span>
+                            </div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-dark mb-4">Turn-Based Battle</h3>
+                            <p class="text-gray-700 text-base md:text-lg leading-relaxed">
+                                Setiap pertanyaan adalah pertempuran strategis! Rencanakan langkah terbaik, pilih jawaban dengan bijak, dan kalahkan setiap tantangan seperti seorang pejuang sejati. Belajar jadi penuh taktik dan menyenangkan!
+                            </p>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2 order-1 md:order-2">
+                        <div class="bg-gradient-to-br from-purple-100 to-blue-100 h-64 md:h-80 rounded-2xl flex items-center justify-center shadow-xl">
+                            <span class="text-6xl md:text-8xl">🎯</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 2: Card Game -->
+                <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12 fade-in">
+                    <div class="w-full md:w-1/2 order-1">
+                        <div class="bg-gradient-to-br from-pink-100 to-orange-100 h-64 md:h-80 rounded-2xl flex items-center justify-center shadow-xl">
+                            <span class="text-6xl md:text-8xl">🃏</span>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2 order-2">
+                        <div class="card-feature bg-gradient-to-br from-orange-50 to-yellow-50 p-8 rounded-2xl shadow-lg">
+                            <div class="feature-icon w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto md:mx-0">
+                                <span class="text-3xl">🎴</span>
+                            </div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-dark mb-4">Card Game</h3>
+                            <p class="text-gray-700 text-base md:text-lg leading-relaxed">
+                                Kumpulkan kartu pengetahuan unik di setiap materi! Setiap kartu memiliki kekuatan khusus yang membantu kamu menguasai berbagai topik pelajaran. Semakin banyak kartu, semakin kuat kemampuan belajarmu!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 3: Sistem Reward -->
+                <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12 fade-in">
+                    <div class="w-full md:w-1/2 order-2 md:order-1">
+                        <div class="card-feature bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-2xl shadow-lg">
+                            <div class="feature-icon w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto md:mx-0">
+                                <span class="text-3xl">🏆</span>
+                            </div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-dark mb-4">Sistem Reward</h3>
+                            <p class="text-gray-700 text-base md:text-lg leading-relaxed">
+                                Raih pencapaian, badge, dan hadiah virtual setiap kali menyelesaikan tantangan! Sistem reward yang memotivasi membuatmu terus semangat belajar dan berkompetisi dengan dirimu sendiri untuk jadi lebih baik lagi!
+                            </p>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2 order-1 md:order-2">
+                        <div class="bg-gradient-to-br from-green-100 to-teal-100 h-64 md:h-80 rounded-2xl flex items-center justify-center shadow-xl">
+                            <span class="text-6xl md:text-8xl">🎁</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="py-16 md:py-20 px-4 bg-gradient-to-br from-blue-50 to-cyan-50">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold text-center text-dark mb-12 fade-in">
+                Tim Pengembang
+            </h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
+                <div class="card-feature bg-white p-6 rounded-xl shadow-lg text-center fade-in">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                        N
+                    </div>
+                    <h3 class="font-bold text-dark text-lg">Naufal</h3>
+                </div>
+                <div class="card-feature bg-white p-6 rounded-xl shadow-lg text-center fade-in fade-in-delay-1">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                        A
+                    </div>
+                    <h3 class="font-bold text-dark text-lg">Aulia</h3>
+                </div>
+                <div class="card-feature bg-white p-6 rounded-xl shadow-lg text-center fade-in fade-in-delay-2">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                        I
+                    </div>
+                    <h3 class="font-bold text-dark text-lg">Ibram</h3>
+                </div>
+                <div class="card-feature bg-white p-6 rounded-xl shadow-lg text-center fade-in fade-in-delay-3">
+                    <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                        V
+                    </div>
+                    <h3 class="font-bold text-dark text-lg">Viky</h3>
+                </div>
+                <div class="card-feature bg-white p-6 rounded-xl shadow-lg text-center fade-in fade-in-delay-3">
+                    <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                        V
+                    </div>
+                    <h3 class="font-bold text-dark text-lg">Volta</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="py-16 md:py-20 px-4 bg-primary text-white">
+        <div class="max-w-4xl mx-auto text-center fade-in">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                Siap Memulai Petualangan Belajar?
+            </h2>
+            <p class="text-lg md:text-xl mb-8 opacity-90">
+                Bergabunglah dengan ribuan siswa SMA yang sudah merasakan cara belajar yang lebih seru dan efektif!
+            </p>
+            <a href="main.html" class="btn-hover inline-block bg-accent text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl hover:bg-opacity-90">
+                🚀 Mulai Belajar Sekarang
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-8 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <p class="text-sm md:text-base opacity-80">
+                © 2024 Bimbel Game. Platform pembelajaran interaktif untuk siswa SMA.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+
+</body>
+</html>

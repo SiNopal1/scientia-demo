@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Game - Turunan Fungsi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            background-color: #f5f8fa;
+            color: #040607;
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .damage-text {
+            animation: damageFloat 1s ease-out forwards;
+        }
+        
+        @keyframes damageFloat {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+        
+        .heal-text {
+            animation: healFloat 1s ease-out forwards;
+        }
+        
+        @keyframes healFloat {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            50% { transform: translateY(-25px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1); }
+        }
+        
+        .health-bar {
+            transition: width 0.5s ease-out;
+        }
+        
+        .critical-glow {
+            animation: criticalGlow 0.5s ease-in-out 3;
+        }
+        
+        @keyframes criticalGlow {
+            0%, 100% { box-shadow: 0 0 10px #3dbaf9; }
+            50% { box-shadow: 0 0 30px #3dbaf9, 0 0 40px #3dbaf9; }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <div id="gameContainer" class="max-w-6xl mx-auto">
+        <!-- Battle Screen -->
+        <div id="battleScreen" class="space-y-4 md:space-y-6">
+            <!-- Title -->
+            <div class="text-center mb-4 md:mb-8">
+                <h1 class="text-2xl md:text-4xl font-bold mb-2" style="color: #528cbd;">Battle: Turunan Fungsi</h1>
+                <div id="streakDisplay" class="text-base md:text-lg font-semibold" style="color: #3dbaf9;">
+                    Streak: <span id="streakCount">0</span> 🔥
+                </div>
+            </div>
+            
+            <!-- Battle Arena -->
+            <div class="relative bg-gradient-to-b from-blue-100 to-blue-200 rounded-lg p-4 md:p-8 shadow-xl" style="background-image: url('../../media/background.jpg'); background-size: cover; background-position: center; min-height: 300px;">
+                <div class="absolute inset-0 bg-black bg-opacity-30 rounded-lg"></div>
+                
+                <div class="relative grid grid-cols-2 gap-2 md:gap-8 items-end">
+                    <!-- Player -->
+                    <div id="playerContainer" class="text-center">
+                        <div class="relative inline-block">
+                            <img src="../../media/player.png" alt="Player" class="w-24 h-24 md:w-48 md:h-48 object-cover rounded-lg shadow-lg mb-2 md:mb-4 mx-auto">
+                            <div id="playerDamageText" class="absolute top-0 left-1/2 transform -translate-x-1/2 text-xl md:text-4xl font-bold hidden"></div>
+                        </div>
+                        <div class="bg-white bg-opacity-90 rounded-lg p-2 md:p-3 shadow-lg">
+                            <p class="font-bold text-sm md:text-lg mb-1 md:mb-2" style="color: #528cbd;">Pemain</p>
+                            <div class="w-full bg-gray-300 rounded-full h-4 md:h-6 overflow-hidden">
+                                <div id="playerHealthBar" class="health-bar bg-green-500 h-4 md:h-6 rounded-full" style="width: 100%; background-color: #528cbd;"></div>
+                            </div>
+                            <p class="mt-1 md:mt-2 text-xs md:text-base font-semibold">HP: <span id="playerHP">200</span>/200</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Monster -->
+                    <div id="monsterContainer" class="text-center">
+                        <div class="relative inline-block">
+                            <img src="../../media/monster3.jpg" alt="Monster" class="w-24 h-24 md:w-48 md:h-48 object-cover rounded-lg shadow-lg mb-2 md:mb-4 mx-auto">
+                            <div id="monsterDamageText" class="absolute top-0 left-1/2 transform -translate-x-1/2 text-xl md:text-4xl font-bold hidden"></div>
+                        </div>
+                        <div class="bg-white bg-opacity-90 rounded-lg p-2 md:p-3 shadow-lg">
+                            <p class="font-bold text-sm md:text-lg mb-1 md:mb-2" style="color: #528cbd;">King Timothy</p>
+                            <div class="w-full bg-gray-300 rounded-full h-4 md:h-6 overflow-hidden">
+                                <div id="monsterHealthBar" class="health-bar bg-red-500 h-4 md:h-6 rounded-full" style="width: 100%;"></div>
+                            </div>
+                            <p class="mt-1 md:mt-2 text-xs md:text-base font-semibold">HP: <span id="monsterHP">500</span>/500</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div id="actionButtons" class="flex gap-2 md:gap-4 justify-center px-2">
+                <button onclick="selectAction('heal')" class="flex-1 md:flex-none px-4 md:px-8 py-3 md:py-4 rounded-lg font-bold text-white text-base md:text-xl shadow-lg transform hover:scale-105 transition" style="background-color: #528cbd;">
+                    💚 HEAL
+                </button>
+                <button onclick="selectAction('attack')" class="flex-1 md:flex-none px-4 md:px-8 py-3 md:py-4 rounded-lg font-bold text-white text-base md:text-xl shadow-lg transform hover:scale-105 transition" style="background-color: #3dbaf9;">
+                    ⚔️ ATTACK
+                </button>
+            </div>
+            
+            <!-- Question Panel -->
+            <div id="questionPanel" class="hidden">
+                <div class="bg-white rounded-lg p-4 md:p-6 shadow-xl fade-in">
+                    <h2 class="text-xl md:text-2xl font-bold mb-3 md:mb-4" style="color: #528cbd;">Pertanyaan:</h2>
+                    <p id="questionContent" class="text-base md:text-lg mb-4 md:mb-6"></p>
+                    <div id="optionsContainer" class="space-y-2 md:space-y-3"></div>
+                </div>
+            </div>
+            
+            <!-- Explanation Panel -->
+            <div id="explanationPanel" class="hidden">
+                <div class="bg-white rounded-lg p-4 md:p-6 shadow-xl fade-in">
+                    <h2 id="resultTitle" class="text-xl md:text-2xl font-bold mb-3 md:mb-4"></h2>
+                    <p id="explanationContent" class="text-base md:text-lg mb-4 md:mb-6"></p>
+                    <button onclick="nextTurn()" class="w-full px-4 md:px-6 py-2 md:py-3 rounded-lg font-bold text-white text-base md:text-lg shadow-lg" style="background-color: #528cbd;">
+                        Lanjutkan ➡️
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Victory Screen -->
+        <div id="victoryScreen" class="hidden text-center space-y-4 md:space-y-6">
+            <div class="bg-white rounded-lg p-4 md:p-8 shadow-xl fade-in">
+                <h1 class="text-3xl md:text-5xl font-bold mb-3 md:mb-4" style="color: #528cbd;">🎉 KEMENANGAN! 🎉</h1>
+                <p class="text-lg md:text-2xl mb-4 md:mb-6">Selamat! Anda telah mengalahkan monster King Timothy!</p>
+                <img src="../../media/player.png" alt="Victory" class="w-40 h-40 md:w-64 md:h-64 object-cover rounded-lg shadow-lg mx-auto mb-4 md:mb-6">
+                <div class="space-y-3 md:space-y-4">
+                    <button onclick="balik()" class="w-full px-4 md:px-6 py-3 md:py-4 rounded-lg font-bold text-white text-base md:text-xl shadow-lg" style="background-color: #528cbd;">
+                        🏠 Kembali ke Menu Utama
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="hidden text-center space-y-4 md:space-y-6">
+            <div class="bg-white rounded-lg p-4 md:p-8 shadow-xl fade-in">
+                <h1 class="text-3xl md:text-5xl font-bold mb-3 md:mb-4 text-red-600">💀 GAME OVER 💀</h1>
+                <p class="text-lg md:text-2xl mb-4 md:mb-6">Anda telah dikalahkan! Coba lagi?</p>
+                <img src="../../media/monster3.jpg" alt="Game Over" class="w-40 h-40 md:w-64 md:h-64 object-cover rounded-lg shadow-lg mx-auto mb-4 md:mb-6">
+                <div class="space-y-3 md:space-y-4">
+                    <button onclick="restartGame()" class="w-full px-4 md:px-6 py-3 md:py-4 rounded-lg font-bold text-white text-base md:text-xl shadow-lg" style="background-color: #3dbaf9;">
+                        🔄 Main Ulang
+                    </button>
+                    <button onclick="location.href='../../main.html'" class="w-full px-4 md:px-6 py-3 md:py-4 rounded-lg font-bold text-white text-base md:text-xl shadow-lg" style="background-color: #528cbd;">
+                        🏠 Kembali ke Menu Utama
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stage = 10;
+
+        function balik() {
+            let userID = localStorage.getItem('userCurrentLevelId');
+            if(userID == stage) {
+                localStorage.setItem('userCurrentLevelId', stage + 1);
+            }
+
+            window.location.href = "../../main.html";
+        }
+        const questions = [
+        {
+            "id": 1,
+            "content": "Tentukan turunan pertama dari $f(x) = \\sin(3x^2 + 2x)$.",
+            "opsi": [
+                "f'(x) = $\\cos(3x^2 + 2x)(6x + 2)$",
+                "f'(x) = $\\sin(3x^2 + 2x)(6x + 2)$",
+                "f'(x) = $-\\cos(3x^2 + 2x)(6x + 2)$",
+                "f'(x) = $\\cos(3x^2 + 2x)(3x + 2)$"
+            ],
+            "jawaban": "f'(x) = $\\cos(3x^2 + 2x)(6x + 2)$",
+            "penjelasan": "Soal ini menggunakan aturan rantai. Jika $f(x) = \\sin(g(x))$, maka $f'(x) = \\cos(g(x)) \\cdot g'(x)$, dengan $g(x) = 3x^2 + 2x$. Turunan dari g(x) adalah: $g'(x) = 6x + 2$. Sehingga: $f'(x) = \\cos(3x^2 + 2x) \\cdot (6x + 2)$"
+        },
+        {
+            "id": 2,
+            "content": "Tentukan turunan dari $f(x) = \\tan(5x + 3)$.",
+            "opsi": [
+                "f'(x) = $5\\sec^2(5x + 3)$",
+                "f'(x) = $\\sec^2(5x + 3)$",
+                "f'(x) = $5\\tan(5x + 3)$",
+                "f'(x) = $3\\sec^2(5x + 3)$"
+            ],
+            "jawaban": "f'(x) = $5\\sec^2(5x + 3)$",
+            "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\tan(g(x))$, maka $f'(x) = \\sec^2(g(x)) \\cdot g'(x)$, dengan $g(x) = 5x + 3$. Turunan dari g(x) adalah: $g'(x) = 5$. Sehingga: $f'(x) = \\sec^2(5x + 3) \\cdot 5$"
+        },
+        {
+            "id": 3,
+            "content": "Tentukan turunan pertama dari $f(x) = \\cos(2x^3 - x)$.",
+            "opsi": [
+                "f'(x) = $-\\sin(2x^3 - x)(6x^2 - 1)$",
+                "f'(x) = $\\sin(2x^3 - x)(6x^2 - 1)$",
+                "f'(x) = $-\\cos(2x^3 - x)(6x^2 - 1)$",
+                "f'(x) = $-\\sin(2x^3 - x)(3x^2 - 1)$"
+            ],
+            "jawaban": "f'(x) = $-\\sin(2x^3 - x)(6x^2 - 1)$",
+            "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\cos(g(x))$, maka $f'(x) = -\\sin(g(x)) \\cdot g'(x)$, dengan $g(x) = 2x^3 - x$. Turunan dari g(x) adalah: $g'(x) = 6x^2 - 1$. Sehingga: $f'(x) = -\\sin(2x^3 - x) \\cdot (6x^2 - 1)$"
+        },
+        {
+            "id": 4,
+            "content": "Hitung turunan pertama dari $f(x) = e^{x^2 + 1}$.",
+            "opsi": [
+                "f'(x) = $2x e^{x^2 + 1}$",
+                "f'(x) = $e^{x^2 + 1}$",
+                "f'(x) = $(x^2 + 1)e^{2x}$",
+                "f'(x) = $x e^{x^2 + 1}$"
+            ],
+            "jawaban": "f'(x) = $2x e^{x^2 + 1}$",
+            "penjelasan": "Gunakan aturan rantai. Jika $f(x) = e^{g(x)}$, maka $f'(x) = e^{g(x)} \\cdot g'(x)$, dengan $g(x) = x^2 + 1$. Turunan dari g(x) adalah: $g'(x) = 2x$. Sehingga: $f'(x) = e^{x^2 + 1} \\cdot 2x$"
+        },
+        {
+            "id": 5,
+            "content": "Tentukan turunan dari $f(x) = \\ln(2x^3 + 5x)$.",
+            "opsi": [
+                "f'(x) = $\\frac{6x^2 + 5}{2x^3 + 5x}$",
+                "f'(x) = $\\frac{2x^3 + 5x}{6x^2 + 5}$",
+                "f'(x) = $\\frac{6x^2 - 5}{2x^3 + 5x}$",
+                "f'(x) = $\\frac{6x^2 + 5}{x^3 + 5x}$"
+            ],
+            "jawaban": "f'(x) = $\\frac{6x^2 + 5}{2x^3 + 5x}$",
+            "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\ln(g(x))$, maka $f'(x) = \\frac{1}{g(x)} \\cdot g'(x)$, dengan $g(x) = 2x^3 + 5x$. Turunan dari g(x) adalah: $g'(x) = 6x^2 + 5$. Sehingga: $f'(x) = \\frac{6x^2 + 5}{2x^3 + 5x}$"
+        },
+        {
+            "id": 6,
+            "content": "Tentukan turunan pertama dari $f(x) = \\sin(x^2 + 4x)$.",
+            "opsi": [
+                "f'(x) = $\\cos(x^2 + 4x)(2x + 4)$",
+                "f'(x) = $\\sin(x^2 + 4x)(2x + 4)$",
+                "f'(x) = $-\\cos(x^2 + 4x)(2x + 4)$",
+                "f'(x) = $\\cos(x^2 + 4x)(x + 4)$"
+            ],
+            "jawaban": "f'(x) = $\\cos(x^2 + 4x)(2x + 4)$",
+            "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\sin(g(x))$, maka $f'(x) = \\cos(g(x)) \\cdot g'(x)$, dengan $g(x) = x^2 + 4x$. Turunan dari g(x) adalah: $g'(x) = 2x + 4$. Sehingga: $f'(x) = \\cos(x^2 + 4x) \\cdot (2x + 4)$"
+        },
+        {
+            "id": 7,
+            "content": "Tentukan turunan pertama dari $f(x) = e^{3x^2 - 5x}$.",
+            "opsi": [
+                "f'(x) = $e^{3x^2 - 5x}(6x - 5)$",
+                "f'(x) = $e^{3x^2 - 5x}(3x - 5)$",
+                "f'(x) = $(6x - 5)e^{x}$",
+                "f'(x) = $(6x - 5)e^{3x^2}$"
+            ],
+            "jawaban": "f'(x) = $e^{3x^2 - 5x}(6x - 5)$",
+            "penjelasan": "Gunakan aturan rantai. Jika $f(x) = e^{g(x)}$, maka $f'(x) = e^{g(x)} \\cdot g'(x)$, dengan $g(x) = 3x^2 - 5x$. Turunan dari g(x) adalah: $g'(x) = 6x - 5$. Sehingga: $f'(x) = e^{3x^2 - 5x} \\cdot (6x - 5)$"
+        },
+        {
+            "id": 8,
+            "content": "Tentukan turunan dari $f(x) = \\cos(2x^2 + 3x)$.",
+            "opsi": [
+                "f'(x) = $-\\sin(2x^2 + 3x)(4x + 3)$",
+                "f'(x) = $\\sin(2x^2 + 3x)(4x + 3)$",
+                "f'(x) = $-\\cos(2x^2 + 3x)(4x + 3)$",
+                "f'(x) = $-\\sin(2x^2 + 3x)(2x + 3)$"
+            ],
+            "jawaban": "f'(x) = $-\\sin(2x^2 + 3x)(4x + 3)$",
+            "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\cos(g(x))$, maka $f'(x) = -\\sin(g(x)) \\cdot g'(x)$, dengan $g(x) = 2x^2 + 3x$. Turunan dari g(x) adalah: $g'(x) = 4x + 3$. Sehingga: $f'(x) = -\\sin(2x^2 + 3x) \\cdot (4x + 3)$"
+        },
+        {
+            "id": 9,
+            "content": "Tentukan turunan dari $f(x) = \\tan(x^2 + x + 1)$.",
+            "opsi": [
+                "f'(x) = $\\sec^2(x^2 + x + 1)(2x + 1)$",
+                "f'(x) = $\\tan(x^2 + x + 1)(2x + 1)$",
+                "f'(x) = $\\sec(x^2 + x + 1)(2x + 1)$",
+                "f'(x) = $\\sec^2(x^2 + x + 1)(x + 1)$"
+            ],
+            "jawaban": "f'(x) = $\\sec^2(x^2 + x + 1)(2x + 1)$",
+            "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\tan(g(x))$, maka $f'(x) = \\sec^2(g(x)) \\cdot g'(x)$, dengan $g(x) = x^2 + x + 1$. Turunan dari g(x) adalah: $g'(x) = 2x + 1$. Sehingga: $f'(x) = \\sec^2(x^2 + x + 1) \\cdot (2x + 1)$"
+        },
+        {
+            "id": 10,
+            "content": "Tentukan turunan pertama dari $f(x) = \\ln(x^2 + 2x + 3)$.",
+            "opsi": [
+                "f'(x) = $\\frac{2x + 2}{x^2 + 2x + 3}$",
+                "f'(x) = $\\frac{x^2 + 2x + 3}{2x + 2}$",
+                "f'(x) = $\\frac{2x + 3}{x^2 + 2x + 3}$",
+                "f'(x) = $\\frac{2x + 2}{x^2 + 3}$"
+            ],
+            "jawaban": "f'(x) = $\\frac{2x + 2}{x^2 + 2x + 3}$",
+            "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\ln(g(x))$, maka $f'(x) = \\frac{1}{g(x)} \\cdot g'(x)$, dengan $g(x) = x^2 + 2x + 3$. Turunan dari g(x) adalah: $g'(x) = 2x + 2$. Sehingga: $f'(x) = \\frac{2x + 2}{x^2 + 2x + 3}$"
+        }
+    ]
+
+
+
+
+        let gameState = {
+            playerHP: 200,
+            playerMaxHP: 200,
+            monsterHP: 500,
+            monsterMaxHP: 500,
+            streak: 0,
+            currentAction: null,
+            currentQuestion: null,
+            usedQuestions: []
+        };
+
+        const STATS = {
+            playerAttack: 25,
+            playerBluntAttack: 8,
+            playerCriticalMultiplier: 3,
+            playerHeal: 30,
+            monsterAttack: 15
+        };
+
+        function selectAction(action) {
+            gameState.currentAction = action;
+            showQuestion();
+        }
+
+        function processLatex(text) {
+            // Replace $...$ with \(...\) for inline math
+            return text.replace(/\$([^\$]+)\$/g, '\\($1\\)');
+        }
+
+        function showQuestion() {
+            document.getElementById('actionButtons').classList.add('hidden');
+            
+            let availableQuestions = questions.filter(q => !gameState.usedQuestions.includes(q.id));
+            if (availableQuestions.length === 0) {
+                gameState.usedQuestions = [];
+                availableQuestions = questions;
+            }
+            
+            const randomQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+            gameState.currentQuestion = randomQuestion;
+            gameState.usedQuestions.push(randomQuestion.id);
+            
+            document.getElementById('questionContent').innerHTML = processLatex(randomQuestion.content);
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            randomQuestion.opsi.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'w-full text-left px-4 md:px-6 py-3 md:py-4 rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition text-sm md:text-base';
+                button.innerHTML = processLatex(option);
+                button.onclick = () => checkAnswer(option);
+                optionsContainer.appendChild(button);
+            });
+            
+            document.getElementById('questionPanel').classList.remove('hidden');
+            MathJax.typeset();
+        }
+
+        function checkAnswer(selectedAnswer) {
+            const isCorrect = selectedAnswer === gameState.currentQuestion.jawaban;
+            
+            document.getElementById('questionPanel').classList.add('hidden');
+            
+            if (isCorrect) {
+                gameState.streak++;
+                document.getElementById('streakCount').textContent = gameState.streak;
+                
+                if (gameState.currentAction === 'attack') {
+                    let damage = STATS.playerAttack;
+                    let isCritical = false;
+                    
+                    if (gameState.streak >= 3) {
+                        damage = STATS.playerAttack * STATS.playerCriticalMultiplier;
+                        isCritical = true;
+                        gameState.streak = 0;
+                        document.getElementById('streakCount').textContent = '0';
+                        document.getElementById('monsterContainer').classList.add('critical-glow');
+                        setTimeout(() => {
+                            document.getElementById('monsterContainer').classList.remove('critical-glow');
+                        }, 1500);
+                    }
+                    
+                    dealDamageToMonster(damage, isCritical);
+                } else {
+                    healPlayer();
+                }
+                
+                document.getElementById('resultTitle').innerHTML = '✅ Jawaban Benar!';
+                document.getElementById('resultTitle').style.color = '#528cbd';
+            } else {
+                gameState.streak = 0;
+                document.getElementById('streakCount').textContent = '0';
+                
+                if (gameState.currentAction === 'attack') {
+                    dealDamageToMonster(STATS.playerBluntAttack, false);
+                }
+                
+                document.getElementById('resultTitle').innerHTML = '❌ Jawaban Salah!';
+                document.getElementById('resultTitle').style.color = '#ef4444';
+            }
+            
+            document.getElementById('explanationContent').innerHTML = processLatex(gameState.currentQuestion.penjelasan);
+            document.getElementById('explanationPanel').classList.remove('hidden');
+            MathJax.typeset();
+        }
+
+        function dealDamageToMonster(damage, isCritical) {
+            gameState.monsterHP = Math.max(0, gameState.monsterHP - damage);
+            
+            const damageText = document.getElementById('monsterDamageText');
+            damageText.textContent = isCritical ? `-${damage} CRITICAL!` : `-${damage}`;
+            damageText.style.color = isCritical ? '#3dbaf9' : '#ef4444';
+            damageText.classList.remove('hidden');
+            damageText.classList.add('damage-text');
+            
+            document.getElementById('monsterContainer').classList.add('shake');
+            
+            setTimeout(() => {
+                damageText.classList.add('hidden');
+                damageText.classList.remove('damage-text');
+                document.getElementById('monsterContainer').classList.remove('shake');
+            }, 1000);
+            
+            updateHealthBars();
+        }
+
+        function healPlayer() {
+            const healAmount = Math.min(STATS.playerHeal, gameState.playerMaxHP - gameState.playerHP);
+            gameState.playerHP = Math.min(gameState.playerMaxHP, gameState.playerHP + healAmount);
+            
+            const healText = document.getElementById('playerDamageText');
+            healText.textContent = `+${healAmount}`;
+            healText.style.color = '#10b981';
+            healText.classList.remove('hidden');
+            healText.classList.add('heal-text');
+            
+            setTimeout(() => {
+                healText.classList.add('hidden');
+                healText.classList.remove('heal-text');
+            }, 1000);
+            
+            updateHealthBars();
+        }
+
+        function monsterAttack() {
+            gameState.playerHP = Math.max(0, gameState.playerHP - STATS.monsterAttack);
+            
+            const damageText = document.getElementById('playerDamageText');
+            damageText.textContent = `-${STATS.monsterAttack}`;
+            damageText.style.color = '#ef4444';
+            damageText.classList.remove('hidden');
+            damageText.classList.add('damage-text');
+            
+            document.getElementById('playerContainer').classList.add('shake');
+            
+            setTimeout(() => {
+                damageText.classList.add('hidden');
+                damageText.classList.remove('damage-text');
+                document.getElementById('playerContainer').classList.remove('shake');
+            }, 1000);
+            
+            updateHealthBars();
+        }
+
+        function updateHealthBars() {
+            const playerHPPercent = (gameState.playerHP / gameState.playerMaxHP) * 100;
+            const monsterHPPercent = (gameState.monsterHP / gameState.monsterMaxHP) * 100;
+            
+            document.getElementById('playerHealthBar').style.width = playerHPPercent + '%';
+            document.getElementById('monsterHealthBar').style.width = monsterHPPercent + '%';
+            
+            document.getElementById('playerHP').textContent = gameState.playerHP;
+            document.getElementById('monsterHP').textContent = gameState.monsterHP;
+        }
+
+        function nextTurn() {
+            document.getElementById('explanationPanel').classList.add('hidden');
+            
+            if (gameState.monsterHP <= 0) {
+                showVictory();
+                return;
+            }
+            
+            monsterAttack();
+            
+            setTimeout(() => {
+                if (gameState.playerHP <= 0) {
+                    showGameOver();
+                } else {
+                    document.getElementById('actionButtons').classList.remove('hidden');
+                }
+            }, 1000);
+        }
+
+        function showVictory() {
+            document.getElementById('battleScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.remove('hidden');
+        }
+
+        function showGameOver() {
+            document.getElementById('battleScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+
+        function restartGame() {
+            gameState = {
+                playerHP: 200,
+                playerMaxHP: 200,
+                monsterHP: 500,
+                monsterMaxHP: 500,
+                streak: 0,
+                currentAction: null,
+                currentQuestion: null,
+                usedQuestions: []
+            };
+            
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('battleScreen').classList.remove('hidden');
+            document.getElementById('actionButtons').classList.remove('hidden');
+            document.getElementById('streakCount').textContent = '0';
+            
+            updateHealthBars();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!-- <!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peta Pembelajaran</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                    },
+                    colors: {
+                        text: '#040607',
+                        background: '#f5f8fa',
+                        primary: '#528cbd',
+                        primaryDark: '#41729b',
+                        secondary: '#8eb7db',
+                        accent: '#3dbaf9',
+                        boss: '#e11d48',
+                        bossDark: '#9f1239',
+                        locked: '#cbd5e1',
+                        lockedDark: '#94a3b8'
+                    },
+                    animation: {
+                        'pulse-ring': 'pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite',
+                        'unlock': 'unlock-bounce 0.6s ease-out forwards',
+                    },
+                    keyframes: {
+                        'pulse-ring': {
+                            '0%': { transform: 'scale(0.95)', boxShadow: '0 0 0 0 rgba(82, 140, 189, 0.7)' },
+                            '70%': { transform: 'scale(1)', boxShadow: '0 0 0 15px rgba(82, 140, 189, 0)' },
+                            '100%': { transform: 'scale(0.95)', boxShadow: '0 0 0 0 rgba(82, 140, 189, 0)' },
+                        },
+                        'unlock-bounce': {
+                            '0%': { transform: 'scale(0.5)', opacity: '0' },
+                            '50%': { transform: 'scale(1.2)' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body::-webkit-scrollbar { display: none; }
+        body { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .btn-3d { transition: transform 0.1s, box-shadow 0.1s; }
+        .btn-3d:active { transform: translateY(4px); box-shadow: 0 0px 0 0; }
+        
+        /* Node Colors */
+        .node-locked { background-color: #cbd5e1; box-shadow: 0 6px 0 #94a3b8; }
+        .node-active { background-color: #528cbd; box-shadow: 0 6px 0 #41729b; }
+        .node-boss { background-color: #e11d48; box-shadow: 0 8px 0 #9f1239; }
+        
+        /* Pulse Effect */
+        .current-pulse::before {
+            content: '';
+            position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border-radius: 50%; border: 4px solid #3dbaf9; opacity: 0.6;
+            animation: pulse-ring 1.5s infinite; z-index: -1;
+        }
+    </style>
+</head>
+<body class="bg-background text-text font-sans min-h-screen flex flex-col items-center relative overflow-x-hidden pb-20">
+
+    <div class="fixed top-0 w-full max-w-md bg-background/95 backdrop-blur-sm z-50 px-4 py-4 border-b border-gray-200">
+        <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div id="progress-bar" class="bg-accent h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="text-xs text-center text-gray-400 mt-1" id="debug-status">Loading...</div>
+    </div>
+
+    <div id="level-container" class="w-full max-w-md flex flex-col items-center pt-24 space-y-6 relative">
+        </div>
+
+    <svg style="display: none;">
+        <symbol id="icon-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+        <symbol id="icon-battle" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.9 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+        <symbol id="icon-skull" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-4.42 0-8 3.58-8 8 0 2.88 1.53 5.41 3.84 6.83.42 1.74 1.33 3.33 2.62 4.61.39.39.9.56 1.54.56h.01c.63 0 1.15-.17 1.54-.56 1.29-1.28 2.2-2.87 2.62-4.61C18.47 15.41 20 12.88 20 10c0-4.42-3.58-8-8-8zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-4-4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm8 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></symbol>
+        <symbol id="icon-lock" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2 .9 2 2z"/></symbol>
+    </svg>
+
+    <script>
+        // --- DATA LEVEL ---
+        const levelsData = [
+            { "id": 1, "name": "Definisi Turunan", "type": "lesson", "filePath": "learn/ch1/main.html" },
+            { "id": 2, "name": "Aturan Perpangkatan", "type": "lesson", "filePath": "learn/ch2/main.html" },
+            { "id": 3, "name": "Penjumlahan dan Pengurangan", "type": "lesson", "filePath": "learn/ch3/main.html" },
+            { "id": 4, "name": "Battle I", "type": "battle", "filePath": "battle/ch1/main.html" },
+            { "id": 5, "name": "Perkalian", "type": "lesson", "filePath": "lesson/ch4/main.html" },
+            { "id": 6, "name": "Pembagian", "type": "lesson", "filePath": "lesson/ch5/main.html" },
+            { "id": 7, "name": "Battle II", "type": "battle", "filePath": "battle/ch2/main.html" },
+            { "id": 8, "name": "Aturan Rantai", "type": "lesson", "filePath": "learn/ch6/main.html" },
+            { "id": 9, "name": "Aturan Trigonometri", "type": "lesson", "filePath": "learn/ch7/main.html" },
+            { "id": 10, "name": "Battle III", "type": "battle", "filePath": "battle/ch3/main.html" },
+            { "id": 11, "name": "Final Boss", "type": "final-boss", "filePath": "battle/ch4/main.html" }
+        ];
+
+        // --- STATE MANAGEMENT (REVISI) ---
+        // Variabel LocalStorage: 'userCurrentLevelId'
+        // Menyimpan SATU ID level yang sedang aktif. 
+        // Contoh: Jika bernilai 3, maka level 1 & 2 selesai, level 3 aktif, level 4+ terkunci.
+        
+        const STORAGE_KEY = 'userCurrentLevelId';
+        
+        // Ambil data, default ke 1 jika belum ada
+        let currentLevelId = parseInt(localStorage.getItem(STORAGE_KEY)) || 1;
+        
+        // Helper: Cek status level berdasarkan ID vs Current Variable
+        function getLevelStatus(levelId) {
+            if (levelId < currentLevelId) return 'completed';
+            if (levelId === currentLevelId) return 'current';
+            return 'locked';
+        }
+
+        // --- RENDERING LOGIC ---
+        function renderLevels() {
+            const container = document.getElementById('level-container');
+            container.innerHTML = ''; 
+            
+            // Hitung Progress Bar (Berdasarkan index level saat ini)
+            // Level 1 = 0%, Level terakhir selesai = 100%
+            const currentIndex = levelsData.findIndex(l => l.id === currentLevelId);
+            // Jika ID tidak ditemukan (misal tamat), anggap 100%
+            const validIndex = currentIndex === -1 ? levelsData.length : currentIndex;
+            const progressPct = (validIndex / levelsData.length) * 100;
+            
+            document.getElementById('progress-bar').style.width = `${progressPct}%`;
+            document.getElementById('debug-status').innerText = `Current Level: ${currentLevelId}`;
+
+            levelsData.forEach((level, index) => {
+                const status = getLevelStatus(level.id);
+                
+                // Zig-zag Logic
+                const xShift = Math.sin(index * 1.2) * 70; 
+                const isLeft = xShift < 0; 
+                
+                const levelWrapper = document.createElement('div');
+                levelWrapper.className = "relative flex items-center justify-center w-full py-2";
+                
+                let nodeClass = "w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl cursor-pointer transition-transform duration-200 relative z-10 btn-3d";
+                let iconId = "";
+                
+                if (status === 'locked') {
+                    nodeClass += " node-locked text-gray-500 pointer-events-none";
+                    iconId = "#icon-lock";
+                } else {
+                    if (level.type === 'final-boss') {
+                        nodeClass += " w-28 h-28 node-boss text-4xl"; 
+                        iconId = "#icon-skull";
+                    } else if (level.type === 'battle') {
+                        nodeClass += " node-active";
+                        iconId = "#icon-battle";
+                    } else {
+                        nodeClass += " node-active";
+                        iconId = "#icon-star";
+                    }
+
+                    if (status === 'current') {
+                        nodeClass += " current-pulse animate-unlock"; 
+                    }
+                }
+
+                const iconHtml = `<svg class="w-[50%] h-[50%]"><use href="${iconId}"></use></svg>`;
+
+                let actionText = (level.type === 'battle' || level.type === 'final-boss') ? "Let's Fight!" : "Let's Learn!";
+                let actionBtnColor = level.type === 'final-boss' ? 'bg-boss border-bossDark' : 'bg-primary border-primaryDark';
+
+                // Pop-up Positioning
+                const popupPositionClass = isLeft ? "left-[calc(50%+50px)]" : "right-[calc(50%+50px)]";
+                
+                const popupHtml = `
+                    <div id="popup-${level.id}" class="hidden absolute ${popupPositionClass} top-1/2 -translate-y-1/2 z-20 w-64 bg-white rounded-xl shadow-xl border-2 border-gray-100 p-4 flex flex-col gap-3 transition-all duration-300 opacity-0 scale-95">
+                        <div class="text-lg font-bold text-text">${level.name}</div>
+                        <div class="text-sm text-gray-500 capitalize">${level.type.replace('-', ' ')}</div>
+                        
+                        <a href="#" onclick="startLevel(${level.id}, '${level.filePath}')" class="w-full py-3 rounded-xl text-white font-bold text-center shadow-[0_4px_0_rgba(0,0,0,0.2)] active:shadow-none active:translate-y-[4px] transition-all uppercase tracking-wide ${actionBtnColor}">
+                            ${actionText}
+                        </a>
+                        <button onclick="closePopup(${level.id})" class="w-full py-2 rounded-xl text-gray-400 font-bold hover:bg-gray-50 transition-colors">
+                            NANTI
+                        </button>
+                        
+                        <button onclick="debugCompleteLevel(${level.id})" class="text-xs text-gray-300 hover:text-accent mt-2">
+                            (Debug: Selesai & Lanjut)
+                        </button>
+                    </div>
+                `;
+
+                levelWrapper.innerHTML = `
+                    <div style="transform: translateX(${xShift}px);">
+                        <div class="${nodeClass}" onclick="togglePopup(${level.id})">
+                            ${iconHtml}
+                            ${status === 'completed' ? '<div class="absolute -bottom-2 -right-2 bg-yellow-400 text-white text-xs p-1 rounded-full border-2 border-white shadow-sm">✔</div>' : ''}
+                        </div>
+                    </div>
+                    ${status !== 'locked' ? popupHtml : ''} 
+                `;
+                
+                container.appendChild(levelWrapper);
+            });
+        }
+
+        // --- INTERACTION LOGIC ---
+        let activePopupId = null;
+
+        function togglePopup(id) {
+            const popup = document.getElementById(`popup-${id}`);
+            if (!popup) return;
+            
+            if (activePopupId && activePopupId !== id) closePopup(activePopupId);
+
+            if (popup.classList.contains('hidden')) {
+                popup.classList.remove('hidden');
+                setTimeout(() => {
+                    popup.classList.remove('opacity-0', 'scale-95');
+                    popup.classList.add('opacity-100', 'scale-100');
+                }, 10);
+                activePopupId = id;
+            } else {
+                closePopup(id);
+            }
+        }
+
+        function closePopup(id) {
+            const popup = document.getElementById(`popup-${id}`);
+            if (popup) {
+                popup.classList.remove('opacity-100', 'scale-100');
+                popup.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => { popup.classList.add('hidden'); }, 300);
+            }
+            activePopupId = null;
+        }
+
+        function startLevel(id, path) {
+            window.location.href = path;
+        }
+
+        // --- DEBUG HELPER (REVISI) ---
+        // Fungsi ini mensimulasikan penyelesaian level
+        // Ia akan menaikkan nilai variable ID di LocalStorage ke (ID Saat Ini + 1)
+        window.debugCompleteLevel = function(id) {
+            if (id === currentLevelId) {
+                // Maju ke level berikutnya
+                const nextLevelId = id + 1;
+                currentLevelId = nextLevelId;
+                
+                // Simpan variabel tunggal ke LocalStorage
+                localStorage.setItem(STORAGE_KEY, nextLevelId);
+                
+                renderLevels(); 
+                closePopup(id);
+            }
+        }
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderLevels();
+            
+            // Debug: Tampilkan isi LocalStorage di console untuk pengecekan
+            console.log("Current Level ID in Storage:", localStorage.getItem(STORAGE_KEY));
+
+            document.addEventListener('click', (e) => {
+                if (activePopupId && !e.target.closest('.relative') && !e.target.closest('#popup-' + activePopupId)) {
+                    closePopup(activePopupId);
+                }
+            });
+        });
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peta Pembelajaran Responsif</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // Konfigurasi Warna & Animasi (Sama seperti sebelumnya)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'] },
+                    colors: {
+                        text: '#040607', background: '#f5f8fa', primary: '#528cbd', primaryDark: '#41729b',
+                        accent: '#3dbaf9', boss: '#e11d48', bossDark: '#9f1239', locked: '#cbd5e1', lockedDark: '#94a3b8'
+                    },
+                    animation: { 'pulse-ring': 'pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite' },
+                    keyframes: {
+                        'pulse-ring': { '70%': { transform: 'scale(1)', boxShadow: '0 0 0 15px rgba(82, 140, 189, 0)' } },
+                        'unlock-bounce': { '0%': { transform: 'scale(0.5)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* CSS Khusus */
+        body::-webkit-scrollbar { display: none; }
+        .btn-3d:active { transform: translateY(4px); box-shadow: 0 0px 0 0; }
+        .node-locked { background-color: #cbd5e1; box-shadow: 0 6px 0 #94a3b8; }
+        .node-active { background-color: #528cbd; box-shadow: 0 6px 0 #41729b; }
+        .node-boss { background-color: #e11d48; box-shadow: 0 8px 0 #9f1239; }
+        .current-pulse::before {
+            content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border-radius: 50%; border: 4px solid #3dbaf9; opacity: 0.6;
+            animation: pulse-ring 1.5s infinite; z-index: -1;
+        }
+        /* Penyesuaian Responsif untuk Pop-up */
+        @media (min-width: 640px) {
+            /* Untuk layar yang lebih besar (desktop/tablet), pastikan pop-up tidak terpotong di tepi */
+            .popup-left { left: calc(50% + 50px); }
+            .popup-right { right: calc(50% + 50px); }
+        }
+        @media (max-width: 639px) {
+             /* Untuk mobile, pindahkan pop-up ke kanan agar selalu terlihat */
+            .popup-left, .popup-right {
+                left: 100px; /* Jarak tetap dari node */
+                right: auto;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-text font-sans min-h-screen flex flex-col items-center relative overflow-x-hidden pb-20">
+
+    <div class="fixed top-0 w-full max-w-xl mx-auto bg-background/95 backdrop-blur-sm z-50 px-4 py-4 border-b border-gray-200">
+        <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div id="progress-bar" class="bg-accent h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="text-xs text-center text-gray-400 mt-1" id="debug-status"></div>
+    </div>
+
+    <div id="level-container" class="w-full max-w-xl mx-auto flex flex-col items-center pt-24 space-y-6 relative">
+        </div>
+
+    <svg style="display: none;">
+        <symbol id="icon-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+        <symbol id="icon-battle" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.9 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+        <symbol id="icon-skull" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-4.42 0-8 3.58-8 8 0 2.88 1.53 5.41 3.84 6.83.42 1.74 1.33 3.33 2.62 4.61.39.39.9.56 1.54.56h.01c.63 0 1.15-.17 1.54-.56 1.29-1.28 2.2-2.87 2.62-4.61C18.47 15.41 20 12.88 20 10c0-4.42-3.58-8-8-8zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-4-4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm8 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></symbol>
+        <symbol id="icon-lock" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2 .9 2 2z"/></symbol>
+    </svg>
+
+    <script>
+        // --- DATA LEVEL ---
+        const levelsData = [
+            { "id": 1, "name": "Definisi Turunan", "type": "lesson", "filePath": "learn/ch1/main.html" },
+            { "id": 2, "name": "Aturan Perpangkatan", "type": "lesson", "filePath": "learn/ch2/main.html" },
+            { "id": 3, "name": "Penjumlahan dan Pengurangan", "type": "lesson", "filePath": "learn/ch3/main.html" },
+            { "id": 4, "name": "Battle I", "type": "battle", "filePath": "battle/ch1/main.html" },
+            { "id": 5, "name": "Perkalian", "type": "lesson", "filePath": "learn/ch4/main.html" },
+            { "id": 6, "name": "Pembagian", "type": "lesson", "filePath": "learn/ch5/main.html" },
+            { "id": 7, "name": "Battle II", "type": "battle", "filePath": "battle/ch2/main.html" },
+            { "id": 8, "name": "Aturan Rantai", "type": "lesson", "filePath": "learn/ch6/main.html" },
+            { "id": 9, "name": "Aturan Trigonometri", "type": "lesson", "filePath": "learn/ch7/main.html" },
+            { "id": 10, "name": "Battle III", "type": "battle", "filePath": "battle/ch3/main.html" },
+            { "id": 11, "name": "Final Boss", "type": "final-boss", "filePath": "battle/ch4/main.html" }
+        ];
+
+        // --- STATE & PROGRESS LOGIC ---
+        const STORAGE_KEY = 'userCurrentLevelId';
+        let currentLevelId; 
+        let activePopupId = null;
+
+        function loadProgress() {
+            currentLevelId = parseInt(localStorage.getItem(STORAGE_KEY)) || 1;
+        }
+
+        function getLevelStatus(levelId) {
+            if (levelId < currentLevelId) return 'completed';
+            if (levelId === currentLevelId) return 'current';
+            return 'locked';
+        }
+        
+        // --- RENDERING FUNCTIONS ---
+
+        function updateProgressBar(completedCount, totalLevels) {
+            const progressPct = (completedCount / totalLevels) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPct}%`;
+            document.getElementById('debug-status').innerText = `Progress Aktif: Level ${currentLevelId} | Total Selesai: ${completedCount}/${totalLevels}`;
+        }
+
+        function renderLevels() {
+            loadProgress();
+            const container = document.getElementById('level-container');
+            container.innerHTML = ''; 
+
+            const totalLevels = levelsData.length;
+            const completedCount = levelsData.filter(l => getLevelStatus(l.id) === 'completed').length;
+            updateProgressBar(completedCount, totalLevels);
+
+            levelsData.forEach((level, index) => {
+                const status = getLevelStatus(level.id);
+                // Menjaga zigzag tetap unik
+                const xShift = Math.sin(index * 1.2) * 70; 
+                const isLeft = xShift < 0; 
+                
+                let [nodeClass, iconId, actionText, actionBtnColor] = getNodeStyle(level, status);
+
+                const targetUrl = `${level.filePath}?id=${level.id}`;
+
+                // Pop-up Positioning menggunakan class responsif
+                const popupPositionClass = isLeft ? "popup-left" : "popup-right";
+
+                const popupHtml = getPopupHtml(level, status, isLeft, actionText, actionBtnColor, targetUrl, popupPositionClass);
+
+                const levelWrapper = document.createElement('div');
+                levelWrapper.className = "relative flex items-center justify-center w-full py-2";
+                levelWrapper.innerHTML = `
+                    <div style="transform: translateX(${xShift}px);">
+                        <div class="${nodeClass}" onclick="togglePopup(${level.id})">
+                            <svg class="w-[50%] h-[50%]"><use href="${iconId}"></use></svg>
+                            ${status === 'completed' ? '<div class="absolute -bottom-2 -right-2 bg-yellow-400 text-white text-xs p-1 rounded-full border-2 border-white shadow-sm">✔</div>' : ''}
+                        </div>
+                    </div>
+                    ${status !== 'locked' ? popupHtml : ''} 
+                `;
+                
+                container.appendChild(levelWrapper);
+            });
+        }
+        
+        function getNodeStyle(level, status) {
+            let nodeClass = "w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl cursor-pointer transition-transform duration-200 relative z-10 btn-3d";
+            let iconId = "";
+            let actionText = (level.type === 'battle' || level.type === 'final-boss') ? "Let's Fight!" : "Let's Learn!";
+            let actionBtnColor = level.type === 'final-boss' ? 'bg-boss shadow-[0_4px_0_#9f1239]' : 'bg-primary shadow-[0_4px_0_#41729b]';
+
+            if (status === 'locked') {
+                nodeClass += " node-locked text-gray-500 pointer-events-none";
+                iconId = "#icon-lock";
+            } else {
+                if (level.type === 'final-boss') {
+                    nodeClass += " w-28 h-28 node-boss text-4xl"; 
+                    iconId = "#icon-skull";
+                } else if (level.type === 'battle') {
+                    nodeClass += " node-active";
+                    iconId = "#icon-battle";
+                } else {
+                    nodeClass += " node-active";
+                    iconId = "#icon-star";
+                }
+
+                if (status === 'current') {
+                    nodeClass += " current-pulse " + (level.id === currentLevelId ? "animate-unlock" : "");
+                }
+            }
+            return [nodeClass, iconId, actionText, actionBtnColor];
+        }
+
+        function getPopupHtml(level, status, isLeft, actionText, actionBtnColor, targetUrl, popupPositionClass) {
+            // Perubahan di sini: Menggunakan class CSS responsif baru
+            return `
+                <div id="popup-${level.id}" class="hidden absolute ${popupPositionClass} top-1/2 -translate-y-1/2 z-20 w-64 bg-white rounded-xl shadow-xl border-2 border-gray-100 p-4 flex flex-col gap-3 transition-all duration-300 opacity-0 scale-95">
+                    <div class="text-lg font-bold text-text">${level.name}</div>
+                    <div class="text-sm text-gray-500 capitalize">${level.type.replace('-', ' ')}</div>
+                    
+                    <a href="${targetUrl}" class="w-full py-3 rounded-xl text-white font-bold text-center ${actionBtnColor} active:shadow-none active:translate-y-[4px] transition-all uppercase tracking-wide">
+                        ${actionText}
+                    </a>
+                    <button onclick="closePopup(${level.id})" class="w-full py-2 rounded-xl text-gray-400 font-bold hover:bg-gray-50 transition-colors">
+                        NANTI
+                    </button>
+                </div>
+            `;
+        }
+        
+        // --- POPUP INTERACTION ---
+        function togglePopup(id) {
+            const popup = document.getElementById(`popup-${id}`);
+            if (!popup) return;
+            
+            if (activePopupId && activePopupId !== id) closePopup(activePopupId);
+
+            if (popup.classList.contains('hidden')) {
+                popup.classList.remove('hidden');
+                setTimeout(() => {
+                    popup.classList.remove('opacity-0', 'scale-95');
+                    popup.classList.add('opacity-100', 'scale-100');
+                }, 10);
+                activePopupId = id;
+            } else {
+                closePopup(id);
+            }
+        }
+
+        function closePopup(id) {
+            const popup = document.getElementById(`popup-${id}`);
+            if (popup) {
+                popup.classList.remove('opacity-100', 'scale-100');
+                popup.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => { popup.classList.add('hidden'); }, 300);
+            }
+            activePopupId = null;
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', renderLevels);
+        document.addEventListener('click', (e) => {
+            if (activePopupId && !e.target.closest('.relative') && !e.target.closest('#popup-' + activePopupId)) {
+                closePopup(activePopupId);
+            }
+        });
+    </script>
+</body>
+</html>

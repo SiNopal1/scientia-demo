@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Differentiation</title>
+
+  <style>
+    #calculator {
+      width: 300px;
+      height: 200px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+    #info {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    #sliderContainer {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="calculator"></div>
+
+  <div id="sliderContainer">
+    <label>
+      a:
+      <input type="range" id="aSlider" min="-5" max="5" step="0.01" value="1">
+    </label>
+    <span id="aValue">1.00</span>
+  </div>
+
+  <div id="info">
+    <strong>Titik koordinat:</strong> <span id="coord">(?, ?)</span><br>
+    <strong>Slope:</strong> <span id="slope">?</span>
+  </div>
+
+  <script src="https://www.desmos.com/api/v1.8/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+
+  <script>
+    const elt = document.getElementById("calculator");
+    const coordSpan = document.getElementById("coord");
+    const slopeSpan = document.getElementById("slope");
+    const aSlider = document.getElementById("aSlider");
+    const aValue = document.getElementById("aValue");
+
+    const calculator = Desmos.GraphingCalculator(elt, {
+      expressions: false,
+      settingsMenu: false,
+      keypad: false,
+      zoomButtons: false
+    });
+
+    // Function
+    calculator.setExpression({ id: "fun", latex: "f(x)=x^3-2x+1" });
+
+    // a variable (initial)
+    calculator.setExpression({ id: "a", latex: "a=1" });
+
+    // Point
+    calculator.setExpression({ id: "pt", latex: "(a, f(a))" });
+
+    // Tangent line
+    calculator.setExpression({
+      id: "tangent",
+      latex: "y=f(a)+f'(a)(x-a)"
+    });
+
+    // Helper expressions
+    const aVal = calculator.HelperExpression({ latex: "a" });
+    const fVal = calculator.HelperExpression({ latex: "f(a)" });
+    const slopeVal = calculator.HelperExpression({ latex: "f'(a)" });
+
+    function updateInfo() {
+      Promise.all([
+        aVal.evaluate(),
+        fVal.evaluate(),
+        slopeVal.evaluate()
+      ]).then(values => {
+        const x = values[0].value;
+        const y = values[1].value;
+        const slope = values[2].value;
+
+        coordSpan.textContent = `(${x.toFixed(3)}, ${y.toFixed(3)})`;
+        slopeSpan.textContent = slope.toFixed(3);
+      });
+    }
+
+    // When slider moves → update the variable inside Desmos
+    aSlider.addEventListener("input", () => {
+      const v = parseFloat(aSlider.value);
+      aValue.textContent = v.toFixed(2);
+      calculator.setExpression({ id: "a", latex: `a=${v}` });
+      updateInfo();
+    });
+
+    updateInfo(); // initial
+  </script>
+
+</body>
+</html>
