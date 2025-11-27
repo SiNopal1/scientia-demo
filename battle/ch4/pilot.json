@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "namakartu": "Sharpened Blade",
+    "deskripsi": "Menambah Base ATK player secara permanen sebesar +10 poin.",
+    "harga": 80
+  },
+  {
+    "id": 2,
+    "namakartu": "Heavy Impact",
+    "deskripsi": "Menambah Base ATK sebesar +25, tetapi mengurangi Max HP player secara permanen sebesar -30.",
+    "harga": 150
+  },
+  {
+    "id": 3,
+    "namakartu": "Dragon Slayer",
+    "deskripsi": "Serangan Normal memberikan bonus damage setara 2% dari HP Naga saat ini.",
+    "harga": 180
+  },
+  {
+    "id": 4,
+    "namakartu": "Execute",
+    "deskripsi": "Jika HP Naga di bawah 20% (240 HP), damage player meningkat 2× lipat permanen.",
+    "harga": 200
+  },
+  {
+    "id": 5,
+    "namakartu": "Fury Swipes",
+    "deskripsi": "Setiap kali melakukan serangan, ada peluang 25% untuk menyerang 2 kali dalam satu giliran.",
+    "harga": 160
+  },
+  {
+    "id": 6,
+    "namakartu": "Titan's Heart",
+    "deskripsi": "Menambah Max HP player secara permanen sebesar +100.",
+    "harga": 100
+  },
+  {
+    "id": 7,
+    "namakartu": "Iron Skin",
+    "deskripsi": "Mengurangi semua damage yang diterima dari Naga sebesar 5 poin.",
+    "harga": 120
+  },
+  {
+    "id": 8,
+    "namakartu": "Blessed Regeneration",
+    "deskripsi": "Meningkatkan HP Regen per giliran dari 30 menjadi 50 HP.",
+    "harga": 90
+  },
+  {
+    "id": 9,
+    "namakartu": "Spiked Armor",
+    "deskripsi": "Setiap kali Naga menyerang player, Naga menerima 10 Damage pantulan.",
+    "harga": 110
+  },
+  {
+    "id": 10,
+    "namakartu": "Emergency Shield",
+    "deskripsi": "Jika HP Player turun di bawah 30%, otomatis mendapatkan Shield yang menyerap 50 damage berikutnya (Aktif 1x per 5 giliran).",
+    "harga": 70
+  }
+]

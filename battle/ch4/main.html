@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Boss - Math Battle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-color: #f5f8fa;
+            --text-color: #040607;
+            --primary: #528cbd;
+            --secondary: #8eb7db;
+            --accent: #3dbaf9;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Animations */
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .fade-in { animation: fadeIn 0.5s; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .float-text {
+            position: absolute;
+            animation: floatUp 1.5s ease-out forwards;
+            font-weight: bold;
+            z-index: 50;
+            text-shadow: 0px 0px 3px rgba(255,255,255,1);
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(1.2); }
+        }
+
+        .stun-overlay {
+            background-image: repeating-linear-gradient(45deg, #606dbc 0, #606dbc 10px, transparent 10px, transparent 20px);
+            opacity: 0.3;
+        }
+
+        /* Health Bar Transitions */
+        .health-bar { transition: width 0.5s ease-out, background-color 0.3s; }
+        
+        /* Card Styles */
+        .card-item {
+            transition: all 0.2s;
+        }
+        .card-item:hover:not(:disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glow-gold {
+            animation: glowGold 2s infinite;
+        }
+        @keyframes glowGold {
+            0%, 100% { box-shadow: 0 0 5px #ffd700; }
+            50% { box-shadow: 0 0 15px #ffd700; }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-2 md:p-4">
+
+    <div id="gameContainer" class="max-w-5xl mx-auto space-y-6">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-md border-b-4" style="border-color: var(--primary);">
+            <div>
+                <h1 class="text-2xl font-bold" style="color: var(--primary);">FINAL BOSS: Dragon King</h1>
+                <div class="text-sm text-gray-500">Jawab benar 3x berturut-turut untuk CRITICAL!</div>
+            </div>
+            <div class="flex gap-6 mt-2 md:mt-0 text-lg font-bold">
+                <div class="flex items-center gap-2">
+                    <span>🔥 Streak:</span>
+                    <span id="streakCount" style="color: var(--accent);">0</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span>💰 Gold:</span>
+                    <span id="goldCount" class="text-yellow-600">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative bg-white rounded-xl shadow-xl overflow-hidden min-h-[400px]">
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-200 z-0"></div>
+            
+            <div class="relative z-10 grid grid-cols-2 h-full p-4 md:p-8 items-end gap-4">
+                
+                <div id="playerArea" class="flex flex-col items-center relative transition-all duration-300">
+                    <div id="playerStunVisual" class="hidden absolute inset-0 bg-gray-800 rounded-lg opacity-50 z-20 flex items-center justify-center">
+                        <span class="text-white font-bold text-2xl tracking-widest border-4 border-white p-2 transform -rotate-12">STUNNED</span>
+                    </div>
+                    
+                    <div class="relative">
+                        <img src="../../media/player.png" alt="Player" class="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-lg">
+                        <div id="playerFloatText" class="absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+                    </div>
+                    
+                    <div class="w-full max-w-xs mt-4 bg-white/90 p-3 rounded-lg shadow-sm border border-blue-100">
+                        <div class="flex justify-between text-sm font-bold mb-1">
+                            <span>Player</span>
+                            <span id="playerHPText">200/200</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                            <div id="playerHealthBar" class="health-bar h-full rounded-full" style="width: 100%; background-color: var(--primary);"></div>
+                        </div>
+                        <div class="text-xs mt-1 text-gray-500 flex justify-between">
+                            <span>ATK: <span id="dispAtk">15</span></span>
+                            <span>Regen: <span id="dispRegen">30</span></span>
+                            <span id="dispShield" class="hidden text-blue-600 font-bold">🛡️ Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dragonArea" class="flex flex-col items-center relative">
+                    <div class="relative">
+                        <img src="../../media/boss.png" alt="Dragon" class="w-40 h-40 md:w-64 md:h-64 object-contain drop-shadow-2xl">
+                        <div id="dragonFloatText" class="absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+                    </div>
+                    
+                    <div class="w-full max-w-xs mt-4 bg-white/90 p-3 rounded-lg shadow-sm border border-red-100">
+                        <div class="flex justify-between text-sm font-bold mb-1">
+                            <span class="text-red-800">Hulga</span>
+                            <span id="dragonHPText">1200/1200</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                            <div id="dragonHealthBar" class="health-bar bg-red-600 h-full rounded-full" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4">
+            <div class="md:col-span-2 bg-white p-4 rounded-xl shadow-md">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-lg" style="color: var(--primary);">🏪 Merchant (Pilih Kartu)</h3>
+                    <button onclick="shuffleShop()" class="text-sm px-3 py-1 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 font-semibold border border-yellow-300">
+                        🔄 Shuffle (50 G)
+                    </button>
+                </div>
+                <div id="cardShopContainer" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    </div>
+                <div id="shopMessage" class="text-center text-sm text-gray-400 mt-2 italic hidden">Anda sudah memilih kartu giliran ini.</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-md">
+                <h3 class="font-bold text-lg mb-3" style="color: var(--secondary);">✨ Efek Aktif</h3>
+                <div id="activeEffectsList" class="space-y-2 max-h-40 overflow-y-auto text-sm">
+                    <div class="text-gray-400 italic">Belum ada efek aktif.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="controlPanel" class="mt-4">
+            <div id="actionButtons" class="flex gap-4 justify-center">
+                <button onclick="selectAction('heal')" id="btnHeal" class="flex-1 md:flex-none py-4 px-8 rounded-xl font-bold text-white shadow-lg transform hover:scale-105 transition bg-green-500 hover:bg-green-600">
+                    💚 HEAL
+                </button>
+                <button onclick="selectAction('attack')" id="btnAttack" class="flex-1 md:flex-none py-4 px-8 rounded-xl font-bold text-white shadow-lg transform hover:scale-105 transition" style="background-color: var(--accent);">
+                    ⚔️ ATTACK
+                </button>
+            </div>
+            <div id="stunMessage" class="hidden text-center text-red-500 font-bold text-xl py-4 bg-red-50 rounded-xl border border-red-200">
+                ⚠️ ANDA TERKENA STUN! TIDAK BISA BERGERAK! ⚠️
+                <br><span class="text-sm font-normal text-gray-600">(Silakan beli kartu jika mau, lalu tekan tombol di bawah untuk lanjut)</span>
+                <br>
+                <button onclick="passTurn()" class="mt-2 px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Lewati Giliran ➡️</button>
+            </div>
+        </div>
+
+        <div id="questionPanel" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl fade-in relative">
+                <h2 class="text-xl font-bold mb-4" style="color: var(--primary);">Pertanyaan Matematika</h2>
+                <div id="questionContent" class="text-lg mb-6 font-medium"></div>
+                <div id="optionsContainer" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <div id="explanationPanel" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl fade-in">
+                <h2 id="resultTitle" class="text-2xl font-bold mb-2"></h2>
+                <div class="h-1 w-full bg-gray-100 mb-4"></div>
+                <p id="explanationContent" class="text-gray-700 mb-6 leading-relaxed"></p>
+                <button onclick="endPlayerTurn()" class="w-full py-3 rounded-lg font-bold text-white shadow transition" style="background-color: var(--primary);">
+                    Lanjutkan ➡️
+                </button>
+            </div>
+        </div>
+
+        <div id="endScreen" class="hidden fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center p-8 text-center">
+            <h1 id="endTitle" class="text-5xl font-bold mb-4"></h1>
+            <p id="endMessage" class="text-xl text-gray-600 mb-8"></p>
+            <div class="flex gap-4">
+                <button onclick="location.reload()" class="px-6 py-3 rounded bg-gray-200 hover:bg-gray-300 font-bold">Main Ulang</button>
+                <button onclick="location.href='../../main.html'" class="px-6 py-3 rounded text-white font-bold" style="background-color: var(--primary);">Kembali ke Menu</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- GAME CONFIG & STATE ---
+        const ALL_CARDS = [
+            { id: 1, name: "Sharpened Blade", desc: "Base ATK +10 (Permanen).", price: 80, type: "stat_atk", val: 10 },
+            { id: 2, name: "Heavy Impact", desc: "Base ATK +25, Max HP -30.", price: 150, type: "trade_off", atk: 25, hp: -30 },
+            { id: 3, name: "Dragon Slayer", desc: "Attack bonus +2% HP Naga saat ini.", price: 180, type: "passive_slayer" },
+            { id: 4, name: "Execute", desc: "HP Naga < 20% (240), Damage 2x lipat.", price: 200, type: "passive_execute" },
+            { id: 5, name: "Fury Swipes", desc: "25% peluang menyerang 2x.", price: 160, type: "passive_fury" },
+            { id: 6, name: "Titan's Heart", desc: "Max HP +100 (Heal 100 instant).", price: 100, type: "stat_hp", val: 100 },
+            { id: 7, name: "Iron Skin", desc: "Kurangi damage diterima -5.", price: 120, type: "passive_defense", val: 5 },
+            { id: 8, name: "Blessed Regen", desc: "Regen naik jadi 50 HP/giliran.", price: 90, type: "upgrade_regen", val: 50 },
+            { id: 9, name: "Spiked Armor", desc: "Pantulkan 10 Damage saat diserang.", price: 110, type: "passive_thorns", val: 10 },
+            { id: 10, name: "Emergency Shield", desc: "HP < 30%, dapat Shield 50 (CD 5 turn).", price: 70, type: "passive_shield" }
+        ];
+
+        // Soal Turunan (Sample)
+        const QUESTIONS = [
+            {
+                "id": 1,
+                "content": "Jika f(x) adalah suatu fungsi, turunan dari f(x) pada titik x = a adalah:",
+                "opsi": [
+                    "Nilai rata-rata dari $f(x)$ pada interval $[a, b]$.",
+                    "Limit perubahan fungsi ketika perubahan $x$ mendekati nol.",
+                    "Nilai fungsi pada titik $x = a$.",
+                    "Hasil integral dari $f(x)$."
+                ],
+                "jawaban": "Limit perubahan fungsi ketika perubahan $x$ mendekati nol.",
+                "penjelasan": "Turunan dari suatu fungsi di titik tertentu dapat didefinisikan sebagai limit dari rasio perubahan fungsi terhadap perubahan x yang mendekati nol."
+            },
+            {
+                "id": 2,
+                "content": "Turunan dari $f(x) = x^n$, dengan $n$ adalah konstanta, adalah:",
+                "opsi": [
+                    "f'(x) = $x^{n+1}$",
+                    "f'(x) = $n x^{n+1}$",
+                    "f'(x) = $x^{n-1}$",
+                    "f'(x) = $n x^{n-1}$"
+                ],
+                "jawaban": "f'(x) = $n x^{n-1}$",
+                "penjelasan": "Aturan turunan untuk fungsi berbentuk $x^n$ menyatakan bahwa turunan dari $x^n$ adalah $n * x^{(n-1)}$."
+            },
+            {
+                "id": 3,
+                "content": "Jika $f(x) = 2x^2 + 3x$, maka turunan dari f(x) adalah:",
+                "opsi": [
+                    "f'(x) = $4x + 3$",
+                    "f'(x) = $2x + 3$",
+                    "f'(x) = $2x^2 + 3$",
+                    "f'(x) = $4x^2 + 3$"
+                ],
+                "jawaban": "f'(x) = $4x + 3$",
+                "penjelasan": "Turunan dari $2x^2$ adalah $4x$, dan turunan dari $3x$ adalah $3$. Jadi, turunan dari $f(x) = 2x^2 + 3x$ adalah $f'(x) = 4x + 3$."
+            },
+            {
+                "id": 4,
+                "content": "Jika $g(x) = x^3 - 5x^2 + 4x$, maka turunan dari g(x) adalah:",
+                "opsi": [
+                    "g'(x) = $3x^2 - 5x + 4$",
+                    "g'(x) = $3x^2 - 5x$",
+                    "g'(x) = $3x^2 - 10x + 4$",
+                    "g'(x) = $x^3 - 5x^2 + 4$"
+                ],
+                "jawaban": "g'(x) = $3x^2 - 10x + 4$",
+                "penjelasan": "Turunan dari $x^3$ adalah $3x^2$, turunan dari $-5x^2$ adalah $-10x$, dan turunan dari $4x$ adalah $4$. Jadi, $g'(x) = 3x^2 - 10x + 4$."
+            },
+            {
+                "id": 5,
+                "content": "Diketahui fungsi $h(x) = 3x^4 + 2x^3 - 5x + 7$. Hitunglah turunan dari h(x).",
+                "opsi": [
+                    "h'(x) = $12x^3 + 6x^2 - 5x + 7$",
+                    "h'(x) = $12x^3 + 6x^2 + 5$",
+                    "h'(x) = $3x^3 + 2x^2 - 5x + 7$",
+                    "h'(x) = $12x^3 + 6x^2 - 5$"
+                ],
+                "jawaban": "h'(x) = $12x^3 + 6x^2 - 5$",
+                "penjelasan": "Turunan dari $3x^4$ adalah $12x^3$, turunan dari $2x^3$ adalah $6x^2$, turunan dari $-5x$ adalah $-5$, dan turunan dari $7$ adalah $0$. Jadi, $h'(x) = 12x^3 + 6x^2 - 5$."
+            },
+            {
+                "id": 6,
+                "content": "Turunan dari $f(x) = 5x^2 + 4x - 3$ adalah:",
+                "opsi": [
+                    "f'(x) = $10x + 4$",
+                    "f'(x) = $5x + 4$",
+                    "f'(x) = $10x - 3$",
+                    "f'(x) = $5x^2 + 4$"
+                ],
+                "jawaban": "f'(x) = $10x + 4$",
+                "penjelasan": "Turunan dari $5x^2$ adalah $10x$, dan turunan dari $4x$ adalah $4$. Jadi, $f'(x) = 10x + 4$."
+            },
+            {
+                "id": 7,
+                "content": "$f(x) = 2x^3 - x^2 + 5x - 1$ adalah:",
+                "opsi": [
+                    "f'(x) = $6x^2 + 2x + 5$",
+                    "f'(x) = $6x^2 - 2x - 5$",
+                    "f'(x) = $6x^2 - 5$",
+                    "f'(x) = $6x^2 - 2x + 5$"
+                ],
+                "jawaban": "f'(x) = $6x^2 - 2x + 5$",
+                "penjelasan": "Turunan dari $2x^3$ adalah $6x^2$, turunan dari $-x^2$ adalah $-2x$, dan turunan dari $5x$ adalah $5$. Jadi, $f'(x) = 6x^2 - 2x + 5$."
+            },
+            {
+                "id": 8,
+                "content": "Jika $f(x) = 4x^5 - 3x^3 + 2x$, maka turunan f(x) adalah:",
+                "opsi": [
+                    "f'(x) = $20x^5 - 9x^3 + 2x$",
+                    "f'(x) = $5x^4 - 3x^2 + 2x$",
+                    "f'(x) = $20x^3 - 9x + 2$",
+                    "f'(x) = $20x^4 - 9x^2 + 2$"
+                ],
+                "jawaban": "f'(x) = $20x^4 - 9x^2 + 2$",
+                "penjelasan": "Turunan dari $4x^5$ adalah $20x^4$, turunan dari $-3x^3$ adalah $-9x^2$, dan turunan dari $2x$ adalah $2$. Jadi, $f'(x) = 20x^4 - 9x^2 + 2$."
+            },
+            {
+                "id": 9,
+                "content": "Jika $g(x) = 3x^2 + 4x - 7$, maka g'(x) adalah:",
+                "opsi": [
+                    "g'(x) = $3x^2 + 4x$",
+                    "g'(x) = $6x + 4$",
+                    "g'(x) = $6x - 4$",
+                    "g'(x) = $3x + 4$"
+                ],
+                "jawaban": "g'(x) = $6x + 4$",
+                "penjelasan": "Turunan dari $3x^2$ adalah $6x$, dan turunan dari $4x$ adalah $4$. Jadi, $g'(x) = 6x + 4$."
+            },
+            {
+                "id": 10,
+                "content": "Diberikan fungsi $f(x)=3x^4-2x^3+x^2-5x+4$. Hitunglah turunan pertama dari fungsi f(x).",
+                "opsi": [
+                    "f'(x)= $12x^3-6x^2+2x+5$",
+                    "f'(x)= $12x^3-6x^2-2x+5$",
+                    "f'(x)= $12x^3-6x^2+2x-5$",
+                    "f'(x)= $12x^3+6x^2-2x-5$"
+                ],
+                "jawaban": "f'(x)= $12x^3-6x^2+2x-5$",
+                "penjelasan": "Untuk menghitung turunan pertama dari $f(x)=3x^4-2x^3+x^2-5x+4$, kita menggunakan Power Rule untuk setiap suku dalam fungsi:<br>\tTurunan dari $3x^4$ adalah $12x^3$,<br>\tTurunan dari $-2x^3$ adalah $-6x^2$,<br>\tTurunan dari $x^2$ adalah $2x$,<br>\tTurunan dari $-5x$ adalah $-5$,<br>\tTurunan dari konstanta $4$ adalah $0$.<br>Jadi, turunan pertama dari $f(x)$ adalah $f'(x)=12x^3-6x^2+2x-5$."
+            },
+            {
+                "id": 11,
+                "content": "Hitung turunan pertama dari $f(x) = (3x^2 + 5)(x^3 - 2x)$:",
+                "opsi": [
+                    "f'(x) = $6x^4 - 4x^2$",
+                    "f'(x) = $9x^4 - 10x$",
+                    "f'(x) = $(3x^2 + 5)(x^3 - 2x)$",
+                    "f'(x) = $(6x)(x^3 - 2x) + (3x^2 + 5)(3x^2 - 2)$"
+                ],
+                "jawaban": "f'(x) = $(6x)(x^3 - 2x) + (3x^2 + 5)(3x^2 - 2)$",
+                "penjelasan": "Gunakan aturan turunan perkalian: $f'(x) = u'(x)v(x) + u(x)v'(x)$ dengan $u(x) = 3x^2 + 5$ dan $v(x) = x^3 - 2x$. Maka $u'(x) = 6x$ dan $v'(x) = 3x^2 - 2$, sehingga diperoleh turunan: $(6x)(x^3 - 2x) + (3x^2 + 5)(3x^2 - 2)$."
+            },
+
+            {
+                "id": 12,
+                "content": "Hitung turunan pertama dari $f(x) = (x^2 + 1)(x^3 - 3x)$:",
+                "opsi": [
+                    "f'(x) = $(2x)(x^3 - 3x) + (x^2 + 1)(3x^2 - 3)$",
+                    "f'(x) = $5x^4 - 6x^2$",
+                    "f'(x) = $x^2 + 3x$",
+                    "f'(x) = $(x^2 + 1)(x^3 - 3x)$"
+                ],
+                "jawaban": "f'(x) = $(2x)(x^3 - 3x) + (x^2 + 1)(3x^2 - 3)$",
+                "penjelasan": "Dengan aturan perkalian: $u'(x) = 2x$ dan $v'(x) = 3x^2 - 3$, sehingga turunan adalah $(2x)(x^3 - 3x) + (x^2 + 1)(3x^2 - 3)$."
+            },
+
+            {
+                "id": 13,
+                "content": "Tentukan turunan pertama dari $f(x) = \\frac{(x^2 + 1)(x - 2)}{x}$:",
+                "opsi": [
+                    "f'(x) = $\\frac{x[(2x)(x - 2) + (x^2 + 1)(1)] - (x^2 + 1)(x - 2)}{x^2}$",
+                    "f'(x) = $2x - 2$",
+                    "f'(x) = $(x^2 + 1)(x - 2)$",
+                    "f'(x) = $\\frac{2x}{x^2}$"
+                ],
+                "jawaban": "f'(x) = $\\frac{x[(2x)(x - 2) + (x^2 + 1)(1)] - (x^2 + 1)(x - 2)}{x^2}$",
+                "penjelasan": "Gunakan aturan pembagian: $f'(x)=\\frac{v u' - u v'}{v^2}$ dengan $v(x)=x$ dan $v'(x)=1$. Turunan $u(x)$ dihitung menggunakan aturan perkalian."
+            },
+
+            {
+                "id": 14,
+                "content": "Hitung turunan pertama dari $f(x) = \\frac{(3x^2 + 4x)(2x^3 - x)}{x^2 + 1}$:",
+                "opsi": [
+                    "f'(x) = $6x^2$",
+                    "f'(x) = $(3x^2 + 4x)(2x^3 - x)$",
+                    "f'(x) = $2x^3 - x$",
+                    "f'(x) = $\\frac{(x^2 + 1)[(6x + 4)(2x^3 - x) + (3x^2 + 4x)(6x^2 - 1)] - (3x^2 + 4x)(2x^3 - x)(2x)}{(x^2 + 1)^2}$"
+                ],
+                "jawaban": "f'(x) = $\\frac{(x^2 + 1)[(6x + 4)(2x^3 - x) + (3x^2 + 4x)(6x^2 - 1)] - (3x^2 + 4x)(2x^3 - x)(2x)}{(x^2 + 1)^2}$",
+                "penjelasan": "Gunakan aturan pembagian dan turunkan $u(x)$ menggunakan aturan perkalian."
+            },
+
+            {
+                "id": 15,
+                "content": "Tentukan turunan pertama dari $f(x) = \\frac{x^2 - 1}{x^3 + x}$:",
+                "opsi": [
+                    "f'(x) = $\\frac{(x^3 + x)(2x) - (x^2 - 1)(3x^2 + 1)}{(x^3 + x)^2}$",
+                    "f'(x) = $2x$",
+                    "f'(x) = $(x^2 - 1)(x^3 + x)$",
+                    "f'(x) = $3x^2 + 1$"
+                ],
+                "jawaban": "f'(x) = $\\frac{(x^3 + x)(2x) - (x^2 - 1)(3x^2 + 1)}{(x^3 + x)^2}$",
+                "penjelasan": "Gunakan aturan pembagian: $u'(x)=2x$ dan $v'(x)=3x^2 + 1$."
+            },
+
+            {
+                "id": 16,
+                "content": "Tentukan turunan dari $f(x) = x^2 \\ln(x)$:",
+                "opsi": [
+                    "f'(x) = $2x$",
+                    "f'(x) = $(2x)\\ln(x) + x$",
+                    "f'(x) = $x^2 \\ln(x)$",
+                    "f'(x) = $\\frac{x^2}{x}$"
+                ],
+                "jawaban": "f'(x) = $(2x)\\ln(x) + x$",
+                "penjelasan": "Dengan aturan perkalian: turunan $x^2$ adalah $2x$ dan turunan $\\ln(x)$ adalah $1/x$, sehingga diperoleh $(2x)\\ln(x) + x$."
+            },
+
+            {
+                "id": 17,
+                "content": "Hitung turunan pertama dari $f(x) = (x^2 + 3x)(x^2 - x)$:",
+                "opsi": [
+                    "f'(x) = $2x$",
+                    "f'(x) = $x^2 - x$",
+                    "f'(x) = $(x^2 + 3x)(x^2 - x)$",
+                    "f'(x) = $(2x + 3)(x^2 - x) + (x^2 + 3x)(2x - 1)$",
+                ],
+                "jawaban": "f'(x) = $(2x + 3)(x^2 - x) + (x^2 + 3x)(2x - 1)$",
+                "penjelasan": "Gunakan aturan perkalian dengan $u'(x)=2x+3$ dan $v'(x)=2x-1$."
+            },
+
+            {
+                "id": 18,
+                "content": "Hitung turunan pertama dari $f(x) = \\frac{x^2 + 4}{x^2 - 1}$:",
+                "opsi": [
+                    "f'(x) = $2x$",
+                    "f'(x) = $x^2 - 1$",
+                    "f'(x) = $\\frac{(x^2 - 1)(2x) - (x^2 + 4)(2x)}{(x^2 - 1)^2}$",
+                    "f'(x) = $x^2 + 4$"
+                ],
+                "jawaban": "f'(x) = $\\frac{(x^2 - 1)(2x) - (x^2 + 4)(2x)}{(x^2 - 1)^2}$",
+                "penjelasan": "Gunakan aturan pembagian: $u'(x)=2x$ dan $v'(x)=2x$."
+            },
+
+            {
+                "id": 19,
+                "content": "Tentukan turunan pertama dari $f(x) = \\frac{x^3 + x^2}{x^2 + 1}$:",
+                "opsi": [
+                    "f'(x) = $3x^2$",
+                    "f'(x) = $\\frac{(x^2 + 1)(3x^2 + 2x) - (x^3 + x^2)(2x)}{(x^2 + 1)^2}$",
+                    "f'(x) = $x^3 + x^2$",
+                    "f'(x) = $2x$"
+                ],
+                "jawaban": "f'(x) = $\\frac{(x^2 + 1)(3x^2 + 2x) - (x^3 + x^2)(2x)}{(x^2 + 1)^2}$",
+                "penjelasan": "Gunakan aturan pembagian dengan $u'(x)=3x^2 + 2x$ dan $v'(x)=2x$."
+            },
+
+            {
+                "id": 20,
+                "content": "Tentukan turunan dari $f(x) = \\frac{(x^2 + 3x)(x + 1)}{x}$:",
+                "opsi": [
+                    "f'(x) = $2x$",
+                    "f'(x) = $\\frac{x[(2x + 3)(x + 1) + (x^2 + 3x)(1)] - (x^2 + 3x)(x + 1)}{x^2}$",
+                    "f'(x) = $x + 1$",
+                    "f'(x) = $(x^2 + 3x)(x + 1)$"
+                ],
+                "jawaban": "f'(x) = $\\frac{x[(2x + 3)(x + 1) + (x^2 + 3x)(1)] - (x^2 + 3x)(x + 1)}{x^2}$",
+                "penjelasan": "Gunakan aturan pembagian: $v(x)=x$ dan $v'(x)=1$, sedangkan $u'(x)$ diperoleh dengan aturan perkalian."
+            },
+            { 
+                "id": 21,
+                "content": "Tentukan turunan pertama dari $f(x) = \\sin(3x^2 + 2x)$.",
+                "opsi": [
+                    "f'(x) = $\\sin(3x^2 + 2x)(6x + 2)$",
+                    "f'(x) = $\\cos(3x^2 + 2x)(6x + 2)$",
+                    "f'(x) = $-\\cos(3x^2 + 2x)(6x + 2)$",
+                    "f'(x) = $\\cos(3x^2 + 2x)(3x + 2)$"
+                ],
+                "jawaban": "f'(x) = $\\cos(3x^2 + 2x)(6x + 2)$",
+                "penjelasan": "Soal ini menggunakan aturan rantai. Jika $f(x) = \\sin(g(x))$, maka $f'(x) = \\cos(g(x)) \\cdot g'(x)$, dengan $g(x) = 3x^2 + 2x$. Turunan dari g(x) adalah: $g'(x) = 6x + 2$. Sehingga: $f'(x) = \\cos(3x^2 + 2x) \\cdot (6x + 2)$"
+            },
+            {
+                "id": 22,
+                "content": "Tentukan turunan dari $f(x) = \\tan(5x + 3)$.",
+                "opsi": [
+                    "f'(x) = $\\sec^2(5x + 3)$",
+                    "f'(x) = $5\\tan(5x + 3)$",
+                    "f'(x) = $3\\sec^2(5x + 3)$",
+                    "f'(x) = $5\\sec^2(5x + 3)$"
+                ],
+                "jawaban": "f'(x) = $5\\sec^2(5x + 3)$",
+                "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\tan(g(x))$, maka $f'(x) = \\sec^2(g(x)) \\cdot g'(x)$, dengan $g(x) = 5x + 3$. Turunan dari g(x) adalah: $g'(x) = 5$. Sehingga: $f'(x) = \\sec^2(5x + 3) \\cdot 5$"
+            },
+            {
+                "id": 23,
+                "content": "Tentukan turunan pertama dari $f(x) = \\cos(2x^3 - x)$.",
+                "opsi": [
+                    "f'(x) = $-\\sin(2x^3 - x)(6x^2 - 1)$",
+                    "f'(x) = $\\sin(2x^3 - x)(6x^2 - 1)$",
+                    "f'(x) = $-\\cos(2x^3 - x)(6x^2 - 1)$",
+                    "f'(x) = $-\\sin(2x^3 - x)(3x^2 - 1)$"
+                ],
+                "jawaban": "f'(x) = $-\\sin(2x^3 - x)(6x^2 - 1)$",
+                "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\cos(g(x))$, maka $f'(x) = -\\sin(g(x)) \\cdot g'(x)$, dengan $g(x) = 2x^3 - x$. Turunan dari g(x) adalah: $g'(x) = 6x^2 - 1$. Sehingga: $f'(x) = -\\sin(2x^3 - x) \\cdot (6x^2 - 1)$"
+            },
+            {
+                "id": 24,
+                "content": "Hitung turunan pertama dari $f(x) = e^{x^2 + 1}$.",
+                "opsi": [
+                    "f'(x) = $e^{x^2 + 1}$",
+                    "f'(x) = $(x^2 + 1)e^{2x}$",
+                    "f'(x) = $2x e^{x^2 + 1}$",
+                    "f'(x) = $x e^{x^2 + 1}$"
+                ],
+                "jawaban": "f'(x) = $2x e^{x^2 + 1}$",
+                "penjelasan": "Gunakan aturan rantai. Jika $f(x) = e^{g(x)}$, maka $f'(x) = e^{g(x)} \\cdot g'(x)$, dengan $g(x) = x^2 + 1$. Turunan dari g(x) adalah: $g'(x) = 2x$. Sehingga: $f'(x) = e^{x^2 + 1} \\cdot 2x$"
+            },
+            {
+                "id": 25,
+                "content": "Tentukan turunan dari $f(x) = \\ln(2x^3 + 5x)$.",
+                "opsi": [
+                    "f'(x) = $\\frac{2x^3 + 5x}{6x^2 + 5}$",
+                    "f'(x) = $\\frac{6x^2 - 5}{2x^3 + 5x}$",
+                    "f'(x) = $\\frac{6x^2 + 5}{x^3 + 5x}$",
+                    "f'(x) = $\\frac{6x^2 + 5}{2x^3 + 5x}$"
+                ],
+                "jawaban": "f'(x) = $\\frac{6x^2 + 5}{2x^3 + 5x}$",
+                "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\ln(g(x))$, maka $f'(x) = \\frac{1}{g(x)} \\cdot g'(x)$, dengan $g(x) = 2x^3 + 5x$. Turunan dari g(x) adalah: $g'(x) = 6x^2 + 5$. Sehingga: $f'(x) = \\frac{6x^2 + 5}{2x^3 + 5x}$"
+            },
+            {
+                "id": 26,
+                "content": "Tentukan turunan pertama dari $f(x) = \\sin(x^2 + 4x)$.",
+                "opsi": [
+                    "f'(x) = $\\sin(x^2 + 4x)(2x + 4)$",
+                    "f'(x) = $\\cos(x^2 + 4x)(2x + 4)$",
+                    "f'(x) = $-\\cos(x^2 + 4x)(2x + 4)$",
+                    "f'(x) = $\\cos(x^2 + 4x)(x + 4)$"
+                ],
+                "jawaban": "f'(x) = $\\cos(x^2 + 4x)(2x + 4)$",
+                "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\sin(g(x))$, maka $f'(x) = \\cos(g(x)) \\cdot g'(x)$, dengan $g(x) = x^2 + 4x$. Turunan dari g(x) adalah: $g'(x) = 2x + 4$. Sehingga: $f'(x) = \\cos(x^2 + 4x) \\cdot (2x + 4)$"
+            },
+            {
+                "id": 27,
+                "content": "Tentukan turunan pertama dari $f(x) = e^{3x^2 - 5x}$.",
+                "opsi": [
+                    "f'(x) = $e^{3x^2 - 5x}(6x - 5)$",
+                    "f'(x) = $e^{3x^2 - 5x}(3x - 5)$",
+                    "f'(x) = $(6x - 5)e^{x}$",
+                    "f'(x) = $(6x - 5)e^{3x^2}$"
+                ],
+                "jawaban": "f'(x) = $e^{3x^2 - 5x}(6x - 5)$",
+                "penjelasan": "Gunakan aturan rantai. Jika $f(x) = e^{g(x)}$, maka $f'(x) = e^{g(x)} \\cdot g'(x)$, dengan $g(x) = 3x^2 - 5x$. Turunan dari g(x) adalah: $g'(x) = 6x - 5$. Sehingga: $f'(x) = e^{3x^2 - 5x} \\cdot (6x - 5)$"
+            },
+            {
+                "id": 28,
+                "content": "Tentukan turunan dari $f(x) = \\cos(2x^2 + 3x)$.",
+                "opsi": [
+                    "f'(x) = $\\sin(2x^2 + 3x)(4x + 3)$",
+                    "f'(x) = $-\\sin(2x^2 + 3x)(4x + 3)$",
+                    "f'(x) = $-\\cos(2x^2 + 3x)(4x + 3)$",
+                    "f'(x) = $-\\sin(2x^2 + 3x)(2x + 3)$"
+                ],
+                "jawaban": "f'(x) = $-\\sin(2x^2 + 3x)(4x + 3)$",
+                "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\cos(g(x))$, maka $f'(x) = -\\sin(g(x)) \\cdot g'(x)$, dengan $g(x) = 2x^2 + 3x$. Turunan dari g(x) adalah: $g'(x) = 4x + 3$. Sehingga: $f'(x) = -\\sin(2x^2 + 3x) \\cdot (4x + 3)$"
+            },
+            {
+                "id": 29,
+                "content": "Tentukan turunan dari $f(x) = \\tan(x^2 + x + 1)$.",
+                "opsi": [
+                    "f'(x) = $\\tan(x^2 + x + 1)(2x + 1)$",
+                    "f'(x) = $\\sec(x^2 + x + 1)(2x + 1)$",
+                    "f'(x) = $\\sec^2(x^2 + x + 1)(x + 1)$",
+                    "f'(x) = $\\sec^2(x^2 + x + 1)(2x + 1)$"
+                ],
+                "jawaban": "f'(x) = $\\sec^2(x^2 + x + 1)(2x + 1)$",
+                "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\tan(g(x))$, maka $f'(x) = \\sec^2(g(x)) \\cdot g'(x)$, dengan $g(x) = x^2 + x + 1$. Turunan dari g(x) adalah: $g'(x) = 2x + 1$. Sehingga: $f'(x) = \\sec^2(x^2 + x + 1) \\cdot (2x + 1)$"
+            },
+            {
+                "id": 30,
+                "content": "Tentukan turunan pertama dari $f(x) = \\ln(x^2 + 2x + 3)$.",
+                "opsi": [
+                    "f'(x) = $\\frac{x^2 + 2x + 3}{2x + 2}$",
+                    "f'(x) = $\\frac{2x + 3}{x^2 + 2x + 3}$",
+                    "f'(x) = $\\frac{2x + 2}{x^2 + 2x + 3}$",
+                    "f'(x) = $\\frac{2x + 2}{x^2 + 3}$"
+                ],
+                "jawaban": "f'(x) = $\\frac{2x + 2}{x^2 + 2x + 3}$",
+                "penjelasan": "Gunakan aturan rantai. Jika $f(x) = \\ln(g(x))$, maka $f'(x) = \\frac{1}{g(x)} \\cdot g'(x)$, dengan $g(x) = x^2 + 2x + 3$. Turunan dari g(x) adalah: $g'(x) = 2x + 2$. Sehingga: $f'(x) = \\frac{2x + 2}{x^2 + 2x + 3}$"
+            }
+        ];
+
+        let gameState = {
+            player: {
+                hp: 200, maxHp: 200,
+                baseAtk: 15, baseRegen: 30,
+                gold: 0,
+                shield: 0, shieldCd: 0, // Mekanik Emergency Shield
+                ownedCards: [] // List ID kartu yang dibeli
+            },
+            dragon: {
+                hp: 1200, maxHp: 1200,
+                atk: 15
+            },
+            battle: {
+                streak: 0,
+                isStunned: false, // Player kena stun
+                turn: 1,
+                currentAction: null, // 'heal' atau 'attack'
+                shopLocked: false // Jika sudah beli kartu turn ini (opsional, tapi di sini kita buat bebas beli)
+            },
+            shop: {
+                currentDisplay: [] // ID kartu yang sedang tampil
+            }
+        };
+
+        // --- CORE FUNCTIONS ---
+
+        function initGame() {
+            renderStats();
+            shuffleShop(true); // Initial shop render gratis
+            renderInventory();
+        }
+
+        function renderStats() {
+            // Player
+            const p = gameState.player;
+            document.getElementById('playerHPText').innerText = `${Math.floor(p.hp)}/${p.maxHp}`;
+            document.getElementById('playerHealthBar').style.width = `${(p.hp / p.maxHp) * 100}%`;
+            document.getElementById('dispAtk').innerText = p.baseAtk;
+            document.getElementById('dispRegen').innerText = p.baseRegen;
+            document.getElementById('goldCount').innerText = Math.floor(p.gold);
+
+            // Visual shield
+            if (p.shield > 0) document.getElementById('dispShield').classList.remove('hidden');
+            else document.getElementById('dispShield').classList.add('hidden');
+
+            // Dragon
+            const d = gameState.dragon;
+            document.getElementById('dragonHPText').innerText = `${Math.floor(d.hp)}/${d.maxHp}`;
+            document.getElementById('dragonHealthBar').style.width = `${(d.hp / d.maxHp) * 100}%`;
+
+            // Streak
+            document.getElementById('streakCount').innerText = gameState.battle.streak;
+
+            // Stun UI
+            const stunOverlay = document.getElementById('playerStunVisual');
+            const actionBtns = document.getElementById('actionButtons');
+            const stunMsg = document.getElementById('stunMessage');
+
+            if (gameState.battle.isStunned) {
+                stunOverlay.classList.remove('hidden');
+                actionBtns.classList.add('hidden');
+                stunMsg.classList.remove('hidden');
+            } else {
+                stunOverlay.classList.add('hidden');
+                actionBtns.classList.remove('hidden');
+                stunMsg.classList.add('hidden');
+            }
+        }
+
+        // --- ECONOMY & SHOP SYSTEM ---
+
+        function renderInventory() {
+            const container = document.getElementById('activeEffectsList');
+            container.innerHTML = '';
+            
+            if (gameState.player.ownedCards.length === 0) {
+                container.innerHTML = '<div class="text-gray-400 italic">Belum ada efek aktif.</div>';
+                return;
+            }
+
+            gameState.player.ownedCards.forEach(id => {
+                const card = ALL_CARDS.find(c => c.id === id);
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center bg-blue-50 p-2 rounded border border-blue-100';
+                div.innerHTML = `<span class="font-bold text-blue-800">${card.name}</span> <span class="text-xs text-gray-500">Aktif</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        function shuffleShop(isFree = false) {
+            if (!isFree) {
+                if (gameState.player.gold < 50) {
+                    alert("Gold tidak cukup! Butuh 50 Gold.");
+                    return;
+                }
+                gameState.player.gold -= 50;
+                renderStats();
+            }
+
+            // Filter kartu yang belum dibeli
+            const availableCards = ALL_CARDS.filter(c => !gameState.player.ownedCards.includes(c.id));
+            
+            // Pick 3 random
+            let selected = [];
+            if (availableCards.length <= 3) {
+                selected = availableCards;
+            } else {
+                while(selected.length < 3) {
+                    const rnd = availableCards[Math.floor(Math.random() * availableCards.length)];
+                    if(!selected.includes(rnd)) selected.push(rnd);
+                }
+            }
+            
+            gameState.shop.currentDisplay = selected;
+            renderShopUI();
+        }
+
+        function renderShopUI() {
+            const container = document.getElementById('cardShopContainer');
+            container.innerHTML = '';
+
+            if (gameState.shop.currentDisplay.length === 0) {
+                container.innerHTML = '<div class="col-span-3 text-center text-gray-400 py-4">Semua kartu telah dibeli!</div>';
+                return;
+            }
+
+            gameState.shop.currentDisplay.forEach(card => {
+                const canAfford = gameState.player.gold >= card.price;
+                const btn = document.createElement('button');
+                btn.className = `card-item text-left p-3 rounded-lg border-2 flex flex-col justify-between h-32 ${canAfford ? 'bg-white border-blue-200 hover:border-blue-400 cursor-pointer' : 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed'}`;
+                btn.onclick = () => buyCard(card.id);
+                btn.disabled = !canAfford;
+
+                btn.innerHTML = `
+                    <div>
+                        <div class="font-bold text-sm" style="color: var(--primary);">${card.name}</div>
+                        <div class="text-xs text-gray-600 mt-1 leading-tight">${card.desc}</div>
+                    </div>
+                    <div class="font-bold text-right mt-2 ${canAfford ? 'text-yellow-600' : 'text-red-400'}">
+                        ${card.price} Gold
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function buyCard(id) {
+            const card = ALL_CARDS.find(c => c.id === id);
+            if (gameState.player.gold >= card.price) {
+                gameState.player.gold -= card.price;
+                gameState.player.ownedCards.push(id);
+                
+                // Apply Instant Effects
+                if (card.type === 'stat_atk') gameState.player.baseAtk += card.val;
+                if (card.type === 'stat_hp') {
+                    gameState.player.maxHp += card.val;
+                    gameState.player.hp += card.val; // Instan heal max hp increase
+                }
+                if (card.type === 'trade_off') {
+                    gameState.player.baseAtk += card.atk;
+                    gameState.player.maxHp += card.hp; // Bisa mengurangi
+                    if(gameState.player.hp > gameState.player.maxHp) gameState.player.hp = gameState.player.maxHp;
+                }
+                if (card.type === 'upgrade_regen') gameState.player.baseRegen = card.val;
+
+                // Remove from current display or refresh
+                gameState.shop.currentDisplay = gameState.shop.currentDisplay.filter(c => c.id !== id);
+                
+                renderStats();
+                renderShopUI();
+                renderInventory();
+                
+                // Visual feedback
+                const floatDiv = document.createElement('div');
+                floatDiv.className = 'float-text text-green-600';
+                floatDiv.innerText = `${card.name} Dibeli!`;
+                document.getElementById('playerArea').appendChild(floatDiv);
+                setTimeout(() => floatDiv.remove(), 1500);
+            }
+        }
+
+        // --- BATTLE LOGIC ---
+        let state = false;
+        const bgm = new Audio("../../media/boss.mp3");
+        bgm.loop = true;
+        bgm.volume = 0.5;
+
+        function selectAction(type) {
+            if(state == false) {
+                document.addEventListener("click", () => {
+                bgm.play();
+                }, { once: true });
+            }
+            if (gameState.battle.isStunned) return; // Guard clause
+            gameState.battle.currentAction = type;
+            state = true;
+            showRandomQuestion();
+        }
+
+        // Handle Player terkena stun dan skip turn
+        function passTurn() {
+            gameState.battle.isStunned = false; // Reset stun
+            renderStats();
+            enemyTurnLogic(); // Langsung giliran naga
+        }
+
+        function showRandomQuestion() {
+            const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+            
+            document.getElementById('questionContent').innerHTML = processLatex(q.content);
+            const opsContainer = document.getElementById('optionsContainer');
+            opsContainer.innerHTML = '';
+
+            q.opsi.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-lg border hover:bg-blue-50 transition border-gray-200";
+                btn.innerHTML = processLatex(opt);
+                btn.onclick = () => checkAnswer(opt, q);
+                opsContainer.appendChild(btn);
+            });
+
+            document.getElementById('questionPanel').classList.remove('hidden');
+            MathJax.typeset();
+        }
+
+        function processLatex(text) {
+            return text.replace(/\$([^\$]+)\$/g, '\\($1\\)');
+        }
+
+        function checkAnswer(selected, questionObj) {
+            document.getElementById('questionPanel').classList.add('hidden');
+            const isCorrect = (selected === questionObj.jawaban);
+            const expPanel = document.getElementById('explanationPanel');
+            const title = document.getElementById('resultTitle');
+            
+            expPanel.classList.remove('hidden');
+            document.getElementById('explanationContent').innerHTML = processLatex(questionObj.penjelasan);
+            MathJax.typeset();
+
+            if (isCorrect) {
+                gameState.battle.streak++;
+                title.innerText = "✅ Benar!";
+                title.className = "text-2xl font-bold mb-2 text-green-600";
+                
+                // Execute Action Logic
+                if (gameState.battle.currentAction === 'heal') performHeal();
+                else if (gameState.battle.currentAction === 'attack') performAttack();
+
+            } else {
+                gameState.battle.streak = 0;
+                title.innerText = "❌ Salah!";
+                title.className = "text-2xl font-bold mb-2 text-red-600";
+                // Penalty: No Action (hanya diam)
+            }
+            renderStats();
+        }
+
+        function performHeal() {
+            let amount = gameState.player.baseRegen;
+            // Adrenaline logic? (Tidak ada di list kartu JSON, tapi ada di deskripsi awal. Kita skip sesuai JSON).
+            
+            const oldHp = gameState.player.hp;
+            gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + amount);
+            const actualHeal = Math.floor(gameState.player.hp - oldHp);
+            
+            showFloatText('playerArea', `+${actualHeal} HP`, 'text-green-500');
+        }
+
+        function performAttack() {
+            let damage = gameState.player.baseAtk;
+            let isCrit = false;
+
+            // 1. Streak Critical
+            if (gameState.battle.streak >= 3) {
+                damage *= 2;
+                isCrit = true;
+                gameState.battle.streak = 0; // Reset after crit
+            }
+
+            // 2. Card: Dragon Slayer (+2% Enemy HP)
+            if (gameState.player.ownedCards.includes(3)) {
+                damage += (gameState.dragon.hp * 0.02);
+            }
+
+            // 3. Card: Execute (2x dmg if Dragon HP < 20% (240))
+            if (gameState.player.ownedCards.includes(4) && gameState.dragon.hp < 240) {
+                damage *= 2;
+                showFloatText('playerArea', 'EXECUTE!', 'text-red-600', -40);
+            }
+
+            // 4. Card: Fury Swipes (25% chance double attack)
+            let hits = 1;
+            if (gameState.player.ownedCards.includes(5) && Math.random() < 0.25) {
+                hits = 2;
+                showFloatText('playerArea', 'FURY SWIPES!', 'text-orange-500', -40);
+            }
+
+            for(let i=0; i<hits; i++) {
+                setTimeout(() => {
+                    dealDamageToDragon(damage, isCrit);
+                }, i * 500);
+            }
+        }
+
+        function dealDamageToDragon(amount, isCrit) {
+            amount = Math.floor(amount);
+            const oldHp = gameState.dragon.hp;
+            gameState.dragon.hp = Math.max(0, gameState.dragon.hp - amount);
+            
+            // Economy: 1 HP = 1 Gold
+            const goldGained = Math.floor(oldHp - gameState.dragon.hp);
+            gameState.player.gold += goldGained;
+
+            // Visuals
+            const color = isCrit ? 'text-blue-500 text-3xl' : 'text-red-500 text-2xl';
+            const text = isCrit ? `-${amount} CRIT!` : `-${amount}`;
+            showFloatText('dragonArea', text, color);
+            document.getElementById('dragonArea').classList.add('shake');
+            setTimeout(() => document.getElementById('dragonArea').classList.remove('shake'), 500);
+
+            renderStats(); // Update gold & HP bar
+            renderShopUI();
+        }
+
+        function endPlayerTurn() {
+            document.getElementById('explanationPanel').classList.add('hidden');
+            
+            if (gameState.dragon.hp <= 0) {
+                gameWin();
+                return;
+            }
+
+            // Enemy Turn Delay
+            setTimeout(enemyTurnLogic, 1000);
+        }
+
+        // --- ENEMY AI ---
+
+        function enemyTurnLogic() {
+            // Check Emergency Shield Cooldown
+            if (gameState.player.shieldCd > 0) gameState.player.shieldCd--;
+            
+            // Check Emergency Shield Activation (Card 10)
+            if (gameState.player.ownedCards.includes(10) && 
+                gameState.player.hp < (gameState.player.maxHp * 0.3) && 
+                gameState.player.shieldCd === 0 && 
+                gameState.player.shield === 0) {
+                
+                gameState.player.shield = 50;
+                gameState.player.shieldCd = 5;
+                showFloatText('playerArea', 'SHIELD ACTIVE!', 'text-blue-600');
+                renderStats();
+            }
+
+            // RNG Skill
+            const roll = Math.random() * 100;
+            let skillName = "";
+            let damage = 0;
+
+            if (roll < 50) {
+                // Normal Attack
+                skillName = "Normal Attack";
+                damage = gameState.dragon.atk; // 15
+                applyEnemyDamage(damage, skillName);
+
+            } else if (roll < 70) {
+                // Fire Breath (1.5x)
+                skillName = "🔥 Fire Breath";
+                damage = gameState.dragon.atk * 1.5;
+                applyEnemyDamage(damage, skillName);
+
+            } else if (roll < 90) {
+                // Wings of Stun
+                skillName = "💨 Wings of Stun";
+                gameState.battle.isStunned = true;
+                showFloatText('dragonArea', skillName, 'text-purple-600');
+                // No damage, just stun
+                setTimeout(() => {
+                    showFloatText('playerArea', 'STUNNED!', 'text-gray-800');
+                    renderStats();
+                }, 800);
+
+            } else {
+                // Heal Stomp
+                skillName = "✨ Heal Stomp";
+                const heal = 50;
+                gameState.dragon.hp = Math.min(gameState.dragon.maxHp, gameState.dragon.hp + heal);
+                showFloatText('dragonArea', `+${heal} HP`, 'text-green-500');
+                renderStats();
+            }
+        }
+
+        function applyEnemyDamage(rawDmg, skillName) {
+            showFloatText('dragonArea', skillName, 'text-red-800');
+
+            setTimeout(() => {
+                let finalDmg = rawDmg;
+
+                // Card: Iron Skin (-5 dmg)
+                if (gameState.player.ownedCards.includes(7)) {
+                    finalDmg = Math.max(0, finalDmg - 5);
+                }
+
+                // Handle Shield
+                if (gameState.player.shield > 0) {
+                    if (gameState.player.shield >= finalDmg) {
+                        gameState.player.shield -= finalDmg;
+                        finalDmg = 0;
+                        showFloatText('playerArea', 'BLOCKED', 'text-blue-500');
+                    } else {
+                        finalDmg -= gameState.player.shield;
+                        gameState.player.shield = 0;
+                    }
+                }
+
+                // Apply to HP
+                gameState.player.hp = Math.max(0, gameState.player.hp - finalDmg);
+                showFloatText('playerArea', `-${Math.floor(finalDmg)}`, 'text-red-600');
+                document.getElementById('playerArea').classList.add('shake');
+                setTimeout(() => document.getElementById('playerArea').classList.remove('shake'), 500);
+
+                // Card: Spiked Armor (Reflect 10)
+                if (gameState.player.ownedCards.includes(9)) {
+                    setTimeout(() => {
+                        dealDamageToDragon(10, false);
+                        showFloatText('dragonArea', 'THORNS -10', 'text-gray-600');
+                    }, 500);
+                }
+
+                renderStats();
+
+                if (gameState.player.hp <= 0) {
+                    setTimeout(gameOver, 1000);
+                }
+            }, 800);
+        }
+
+        // --- UTILS ---
+
+        function showFloatText(elementId, text, colorClass, offsetY = 0) {
+            const container = document.getElementById(elementId);
+            const el = document.createElement('div');
+            el.className = `float-text ${colorClass} text-2xl`;
+            el.innerText = text;
+            if (offsetY !== 0) el.style.marginTop = `${offsetY}px`;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        }
+
+        function gameWin() {
+            const screen = document.getElementById('endScreen');
+            screen.classList.remove('hidden');
+            document.getElementById('endTitle').innerText = "🎉 VICTORY!";
+            document.getElementById('endTitle').className = "text-5xl font-bold mb-4 text-green-600";
+            document.getElementById('endMessage').innerText = "Kamu berhasil mengalahkan Dragon King!";
+            
+            // Logic Level Progression
+            let currentStage = parseInt(localStorage.getItem('userCurrentLevelId') || '1');
+            if(currentStage === 11) { // Assuming this is stage 10
+                localStorage.setItem('userCurrentLevelId', 12);
+            }
+        }
+
+        function gameOver() {
+            const screen = document.getElementById('endScreen');
+            screen.classList.remove('hidden');
+            document.getElementById('endTitle').innerText = "💀 GAME OVER";
+            document.getElementById('endTitle').className = "text-5xl font-bold mb-4 text-red-600";
+            document.getElementById('endMessage').innerText = "Jangan menyerah, coba strategi kartu yang berbeda!";
+        }
+
+        // Start
+        initGame();
+
+    </script>
+</body>
+</html>

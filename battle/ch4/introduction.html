@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Boss - Introduction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Georgia', serif;
+        }
+
+        .mysterious-button {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 3px solid #4a4a4a;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1),
+                        inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .mysterious-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.3),
+                        inset 0 0 20px rgba(0, 0, 0, 0.5);
+            border-color: #6a6a6a;
+        }
+
+        .mysterious-button::before {
+            content: '⚠';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: #8a8a8a;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .monolog-text {
+            font-size: 2rem;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            max-width: 80%;
+        }
+
+        .monolog-text.show {
+            opacity: 1;
+        }
+
+        .instructions {
+            background-color: #f5f8fa;
+            color: #040607;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .instructions.show {
+            opacity: 1;
+        }
+
+        .stat-card {
+            background-color: white;
+            border-left: 4px solid #528cbd;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .start-button {
+            background-color: #3dbaf9;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(61, 186, 249, 0.4);
+        }
+
+        .start-button:hover {
+            background-color: #2da5e0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(61, 186, 249, 0.6);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Initial Screen with Mysterious Button -->
+    <div id="initialScreen" class="min-h-screen flex items-center justify-center">
+        <button class="mysterious-button" id="mysteriousBtn"></button>
+    </div>
+
+    <!-- Monolog Screen -->
+    <div id="monologScreen" class="min-h-screen flex items-center justify-center hidden">
+        <p class="monolog-text" id="monologText"></p>
+    </div>
+
+    <!-- Instructions Screen -->
+    <div id="instructionsScreen" class="instructions hidden min-h-screen py-16 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-bold text-center mb-12" style="color: #528cbd;">Mekanisme Pertempuran</h1>
+
+            <!-- Statistik Dasar -->
+            <div class="stat-card p-6 rounded-lg mb-8">
+                <h2 class="text-2xl font-bold mb-4" style="color: #528cbd;">📊 Statistik Dasar</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-bold text-lg mb-2">🐉 Naga</h3>
+                        <ul class="space-y-1 ml-4">
+                            <li>• HP: <span class="font-semibold">1200</span></li>
+                            <li>• ATK: <span class="font-semibold">15</span></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-2">⚔️ Player</h3>
+                        <ul class="space-y-1 ml-4">
+                            <li>• HP: <span class="font-semibold">200</span></li>
+                            <li>• ATK: <span class="font-semibold">15</span></li>
+                            <li>• Heal: <span class="font-semibold">30</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Attack -->
+            <div class="stat-card p-6 rounded-lg mb-8">
+                <h2 class="text-2xl font-bold mb-4" style="color: #528cbd;">⚡ Critical Attack</h2>
+                <p class="leading-relaxed">Jika player menjawab <span class="font-bold">3 jawaban benar berturut-turut</span>, serangan berikutnya menjadi <span class="font-bold" style="color: #3dbaf9;">Critical Attack</span> dengan damage <span class="font-bold">2× lipat</span>.</p>
+            </div>
+
+            <!-- Skill Naga -->
+            <div class="stat-card p-6 rounded-lg mb-8">
+                <h2 class="text-2xl font-bold mb-4" style="color: #528cbd;">🔥 Skill Naga</h2>
+                <div class="space-y-3">
+                    <div class="flex items-start">
+                        <span class="font-bold mr-2">1.</span>
+                        <div>
+                            <span class="font-bold">Normal Attack</span> - Damage standar 
+                            <span class="text-sm" style="color: #8eb7db;">(Peluang 40%)</span>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="font-bold mr-2">2.</span>
+                        <div>
+                            <span class="font-bold">Fire Breath</span> - Damage 1,5× lebih besar dari normal 
+                            <span class="text-sm" style="color: #8eb7db;">(Peluang 30%)</span>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="font-bold mr-2">3.</span>
+                        <div>
+                            <span class="font-bold">Wings of Stun</span> - Player tidak dapat bergerak, naga mendapat giliran tambahan 
+                            <span class="text-sm" style="color: #8eb7db;">(Peluang 20%)</span>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="font-bold mr-2">4.</span>
+                        <div>
+                            <span class="font-bold">Heal Stomp</span> - Naga meregen 50 HP 
+                            <span class="text-sm" style="color: #8eb7db;">(Peluang 10%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ekonomi & Reward -->
+            <div class="stat-card p-6 rounded-lg mb-8">
+                <h2 class="text-2xl font-bold mb-4" style="color: #528cbd;">💰 Ekonomi & Reward</h2>
+                <p class="leading-relaxed">Setiap <span class="font-bold">1 HP</span> darah naga yang dikurangi, player mendapatkan <span class="font-bold" style="color: #3dbaf9;">1 Gold</span>.</p>
+            </div>
+
+            <!-- Kartu Player -->
+            <div class="stat-card p-6 rounded-lg mb-12">
+                <h2 class="text-2xl font-bold mb-4" style="color: #528cbd;">🃏 Kartu Player</h2>
+                <p class="mb-4 leading-relaxed">Setiap giliran, player dapat memilih <span class="font-bold">3 kartu acak</span> yang memberikan efek tambahan:</p>
+                <ul class="space-y-2 ml-6 mb-4">
+                    <li>• <span class="font-semibold">Upgrade ATK</span> - Meningkatkan serangan</li>
+                    <li>• <span class="font-semibold">Upgrade HP</span> - Meningkatkan HP maksimal</li>
+                    <li>• <span class="font-semibold">Menambah Pertahanan</span> - Mengurangi damage yang diterima</li>
+                    <li>• <span class="font-semibold">Adrenaline</span> - ATK & HP Regen lebih tinggi jika HP < 50%</li>
+                    <li>• <span class="font-semibold">Shorter Streak</span> - Streak menjadi 2 sebelum critical attack</li>
+                    <li>• <span class="font-semibold">Upgrade Crit Damage</span> - Meningkatkan damage critical</li>
+                </ul>
+                <div class="space-y-2 text-sm" style="color: #528cbd;">
+                    <p>⚠️ Kartu yang sudah dibeli tidak dapat dibeli lagi</p>
+                    <p>🔄 Untuk shuffle kartu, player harus membayar <span class="font-bold">50 Gold</span></p>
+                </div>
+            </div>
+
+            <!-- Start Button -->
+            <div class="flex justify-center pb-8">
+                <button onclick="window.location.href='main.html'" class="start-button text-white font-bold py-4 px-12 rounded-lg text-xl">
+                    Mulai Pertempuran
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const monologData = [
+            {
+                id: 1,
+                teks: "anda sudah melakukan kesalahan besar",
+                durasi: 1.6
+            },
+            {
+                id: 2,
+                teks: "tombol ini membangunkan naga",
+                durasi: 1.6
+            },
+            {
+                id: 3,
+                teks: "naga yang sudah tidur beribu-ribu tahun akhirnya terbangun.",
+                durasi: 3.6
+            },
+            {
+                id: 4,
+                teks: "bersiaplah menghadapi amukan naga",
+                durasi: 1.6
+            },
+            {
+                id: 5,
+                teks: "hancurkan naga itu secepatnya",
+                durasi: 1.6
+            },
+            {
+                id: 6,
+                teks: "jangan biarkan naga itu menghancurkan kota dengan nafas apinya!",
+                durasi: 5
+            }
+        ];
+
+        const mysteriousBtn = document.getElementById('mysteriousBtn');
+        const initialScreen = document.getElementById('initialScreen');
+        const monologScreen = document.getElementById('monologScreen');
+        const monologText = document.getElementById('monologText');
+        const instructionsScreen = document.getElementById('instructionsScreen');
+
+        let audio;
+
+        mysteriousBtn.addEventListener('click', () => {
+            // Play audio
+            audio = new Audio('../../media/intro.mp3');
+            audio.play();
+
+            // Hide initial screen and show monolog
+            initialScreen.classList.add('hidden');
+            monologScreen.classList.remove('hidden');
+
+            // Start monolog sequence
+            playMonolog();
+        });
+
+        function playMonolog() {
+            let currentIndex = 0;
+
+            function showNextText() {
+                if (currentIndex < monologData.length) {
+                    const currentMonolog = monologData[currentIndex];
+                    
+                    // Set text
+                    monologText.textContent = currentMonolog.teks;
+                    
+                    // Fade in
+                    monologText.classList.add('show');
+
+                    // Schedule fade out and next text
+                    setTimeout(() => {
+                        monologText.classList.remove('show');
+                        currentIndex++;
+                        
+                        // Wait for fade out to complete, then show next
+                        setTimeout(() => {
+                            showNextText();
+                        }, 500); // Match fade-out duration
+                    }, currentMonolog.durasi * 1000);
+                } else {
+                    // Monolog finished, stop audio and show instructions
+                    if (audio) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
+                    
+                    setTimeout(() => {
+                        monologScreen.classList.add('hidden');
+                        instructionsScreen.classList.remove('hidden');
+                        setTimeout(() => {
+                            instructionsScreen.classList.add('show');
+                        }, 100);
+                    }, 1000);
+                }
+            }
+
+            showNextText();
+        }
+    </script>
+</body>
+</html>
